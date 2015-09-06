@@ -11,7 +11,7 @@
     git clone https://github.com/asciidoctor/asciidoctor-fopub
     ```
     ```
-    asciidoctor -b docbook -d article -a data-uri! index.adoc
+    asciidoctor -b docbook -d article -a data-uri! todo.adoc
     ```
     ```
     ./fopub index.xml \
