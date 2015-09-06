@@ -1,0 +1,26 @@
+= For Scala Developer
+forrestinc
+:author:      since 2015
+:authorinitials: forrestinc
+:keywords:    Scala,Play2,SpringBoot,Intellij,Docker,圏論,AsciiDoctor,Electron,React
+:description: 2015/09-2016/03
+:revnumber:   1.0
+:homepage:
+:source:
+:lang:        ja
+:icons:       font
+:docinfo1:
+:numbered!:
+:toc2:
+
+// リスト
+[blue]#*Keywards*#
+
+- IntelliJ
+- Scala
+- Play2
+
+:leveloffset: 1
+
+:numbered:
+include::intellij/readme.adoc[]

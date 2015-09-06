@@ -1,0 +1,90 @@
+# Intellij IDEA
+
+Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
+
+## 起動オプション
+
+- 設定ファイル(eclipse.iniのようなもの)へJVMオプションを追加できる。
+* [blue]_Windows_
+** インストールフォルダ/bin/idea64.exe.vmoptions
+* [red]_Mac_
+** インストールアプリ/Contents/bin/idea.vmoptions
+
+## ショートカット
+
+.Scala開発でよく使う一覧（随時更新）
+|===
+|機能説明|Windows|Mac
+
+|検索
+|Shift Shift
+|Shift Shift
+
+|最近つかったファイル表示
+|Ctrl+E
+|Command+E
+
+|宣言を開く
+|Ctrl+B
+|Command+B
+
+|クラス（型）階層を開く
+|Ctrl+H
+|Control+H
+
+|呼び出し階層を開く
+|Alt+Ctrl+H
+|Option+Control+H
+
+|実装を開く
+|(Ctrlを押しながら選択)
+|Option+Command+B (もしくはCtrlを押しながら選択)
+
+|アウトライン表示
+|Ctrl+O
+|Command+F12
+
+|クラスを開く
+|Ctrl+N
+|Command+O
+
+|ファイルを開く
+|Ctrl+Shift+N
+|Shift+Command+O
+
+|暗黙パラメータを開く
+|Ctrl+Shift+P
+|Shift+Command+P
+
+|コメントアウト
+|Ctrl+/
+|Command+/
+
+|Link with Editor
+|Alt+F1, 1
+|Option+F1, 1
+
+|変数リネーム
+|Shift+F6
+|Shift+F6
+
+|リファクタリングメニュー表示
+|Ctrl+ALt+Shift+T
+|Control+T
+
+|オーバーライドメソッド表示
+|Ctrl+O
+|Control+O
+
+|ジェネレートメニュー表示
+|Alt+Insert
+|Command+N
+
+|インポート整理
+|Ctrl+Alt+O
+|Option+Control+O
+
+|行移動
+|Alt+Shift ↑↓
+|Option+Shift ↑↓
+|===
