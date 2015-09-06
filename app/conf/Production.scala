@@ -7,6 +7,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 /**
+ *
  * @author forrestinc
  */
 object Production extends GlobalSettings {

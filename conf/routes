@@ -11,3 +11,6 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 # First REST API
 GET     /v1/hello                   controllers.Application.hello
 GET     /v1/rest					controllers.Application.rest
+
+# validate API
+POST    /v1/validate                controllers.Application.post

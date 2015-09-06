@@ -1,11 +1,12 @@
 package controllers
 
-import play.api._
-import play.api.mvc._
-import views.html._
-import play.api.libs.json._
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import models.Helo
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.{JsPath, Json, Reads}
+import play.api.mvc._
 
 class Application extends Controller {
 
@@ -13,20 +14,37 @@ class Application extends Controller {
     Ok(views.html.index("Your new application is ready."))
   }
 
-  // Hello World by return html (add views/hello.scala.html)
+  /* return html (add views/hello.scala.html) */
   def hello = Action {
     Ok(views.html.hello("api version 1."))
   }
 
-  // Hello World by return json
+  /* return json */
   def rest = Action {
-    val helo = Helo("helo")
+    val helo = Helo("helo", "1")
     val mapper = new ObjectMapper
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     mapper.registerModule(DefaultScalaModule)
     Ok(mapper.writeValueAsString(helo))
   }
 
-  case class Helo(val message: String)
+  /* validate post json */
+  implicit val heloFormatter: Reads[Helo] = (
+    (JsPath \ "message").read[String] and
+      (JsPath \ "version").read[String]
+    )(Helo.apply _)
+
+  def post = Action(parse.json) {
+    request =>
+      val helo = request.body.validate[Helo]
+      helo.fold(
+        errors => {
+          BadRequest(Json.obj("message" -> "Json Syntax Error."))
+        },
+        helo => {
+          Ok(Json.obj("message" -> "Json Syntax Ok."))
+        }
+      )
+  }
 
 }
