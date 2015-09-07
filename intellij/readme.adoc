@@ -41,7 +41,7 @@ Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
 |Option+Command+B (もしくはCtrlを押しながら選択)
 
 |アウトライン表示
-|Ctrl+O
+|Ctrl+F12
 |Command+F12
 
 |クラスを開く
@@ -87,4 +87,8 @@ Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
 |行移動
 |Alt+Shift ↑↓
 |Option+Shift ↑↓
+
+|行削除
+|Ctrl+Y
+|Command+Y
 |===
