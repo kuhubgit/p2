@@ -1,8 +1,9 @@
-# Intellij IDEA
 
+****
 Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
+****
 
-## 起動オプション
+== 起動オプション
 
 - 設定ファイル(eclipse.iniのようなもの)へJVMオプションを追加できる。
 * [blue]_Windows_
@@ -10,7 +11,7 @@ Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
 * [red]_Mac_
 ** インストールアプリ/Contents/bin/idea.vmoptions
 
-## ショートカット
+== ショートカット
 
 .Scala開発でよく使う一覧（随時更新）
 |===
@@ -91,4 +92,32 @@ Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
 |行削除
 |Ctrl+Y
 |Command+Y
+
+|タブ移動
+|Alt+　← →
+|Opton+　← →
+
+|ジャンプ履歴移動
+|Ctrl+Alt+　← →
+|Ctrl+Option+　← →
+
+|選択箇所をforなどで囲む
+|Ctrl+Alt+T
+|Command+Option+T
+
+|選択箇所インライン化
+|Ctrl+Alt+N
+|Command+Option+N
+
+|選択箇所メソッド化
+|Ctrl+Alt+M
+|Command+Option+M
+
+|UML図の表示
+|Ctrl+Alt+U
+|Command+Option+U
+
+|フォーマット
+|Ctrl+Alt+L
+|Command+Option+L
 |===

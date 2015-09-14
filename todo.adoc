@@ -23,4 +23,12 @@ forrestinc
 :leveloffset: 1
 
 :numbered:
+= Intellij IDEA
 include::intellij/readme.adoc[]
+
+= Scala
+
+include::scala/1_Introduction/readme.adoc[]
+include::scala/2_Option/readme.adoc[]
+include::scala/3_Future/readme.adoc[]
+include::scala/4_Collection/readme.adoc[]

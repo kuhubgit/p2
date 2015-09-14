@@ -429,6 +429,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_ショートカット">1.2. ショートカット</a></li>
 </ul>
 </li>
+<li><a href="#_scala">2. Scala</a>
+<ul class="sectlevel2">
+<li><a href="#_introduction">2.1. Introduction</a></li>
+<li><a href="#_option">2.2. Option</a></li>
+<li><a href="#_future">2.3. Future</a></li>
+<li><a href="#_collection">2.4. Collection</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -456,8 +464,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_intellij_idea">1. Intellij IDEA</h2>
 <div class="sectionbody">
+<div class="sidebarblock">
+<div class="content">
 <div class="paragraph">
 <p>Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_起動オプション">1.1. 起動オプション</h3>
@@ -605,8 +617,145 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Y</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Command+Y</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">タブ移動</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+　← →</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Opton+　← →</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ジャンプ履歴移動</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+　← →</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Option+　← →</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所をforなどで囲む</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+T</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+T</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所インライン化</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+N</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+N</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所メソッド化</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+M</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+M</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UML図の表示</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+U</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+U</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">フォーマット</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+L</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+L</p></td>
+</tr>
 </tbody>
 </table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala">2. Scala</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_introduction">2.1. Introduction</h3>
+<div class="sect3">
+<h4 id="_本書の内容">2.1.1. 本書の内容</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_インストール">2.1.2. インストール</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_参考サイト">2.1.3. 参考サイト</h4>
+
+</div>
+</div>
+<div class="sect2">
+<h3 id="_option">2.2. Option</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>Scalaで特徴的な型としてOption型を説明する。
+Option型を上手に使用するためのコツや、代表的な使用例を説明する。
+最後にOption型による例外処理を取り上げる。</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_some">2.2.1. Some</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_nullの扱い">2.2.2. nullの扱い</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>None</p>
+</li>
+<li>
+<p>Nothing</p>
+</li>
+<li>
+<p>Nil</p>
+</li>
+<li>
+<p>null</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_either">2.2.3. Either</h4>
+
+</div>
+</div>
+<div class="sect2">
+<h3 id="_future">2.3. Future</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>ここではscala.concurrent.Futureの使い方をみていく。
+Futureは*非同期処理*で頻出する型なので、ぜひとも習得しておきたい。
+また、合わせて*for内包表記*についてもまとめる。</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_future_2">2.3.1. Future</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_for内包表記">2.3.2. for内包表記</h4>
+
+</div>
+</div>
+<div class="sect2">
+<h3 id="_collection">2.4. Collection</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>Scalaでの基本コレクション型である、Set,Map,Seqについて説明を行い、簡単な使用例を紹介する。
+また、応用例として便利な関数を作成する。</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_set">2.4.1. Set</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_map">2.4.2. Map</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_seq">2.4.3. Seq</h4>
+
+</div>
 </div>
 </div>
 </div>
@@ -614,7 +763,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-06 18:11:07 JST
+Last updated 2015-09-14 23:43:04 JST
 </div>
 </div>
 </body>
