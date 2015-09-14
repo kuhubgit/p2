@@ -1,4 +1,4 @@
-= For Scala Developer
+= Scala Developer's Guide
 forrestinc
 :author:      since 2015
 :authorinitials: forrestinc
@@ -14,9 +14,7 @@ forrestinc
 :toc2:
 
 // リスト
-[blue]#*Keywards*#
-
-- IntelliJ
+- IntelliJ IDEA
 - Scala
 - Play2
 

@@ -1,6 +1,6 @@
 
 ****
-Intellij IDEAを初めて使うEclipser(Javaの人)を対象に説明する。
+Intellij IDEAを初めて使う開発者を対象に説明する。
 ****
 
 == 起動オプション
