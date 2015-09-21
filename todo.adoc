@@ -15,6 +15,7 @@ forrestinc
 :linkattrs:
 :experimental:
 :source-highlighter: coderay
+:coderay-css: style
 
 
 *_目的_*

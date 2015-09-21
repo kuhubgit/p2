@@ -13,7 +13,7 @@ TIP: 開発環境はMacで作成することを強くお勧めする。
 ** `$ brew install scala`
 
 '''
-- SBT
+- SBT(Scala Build Tool)
 * [blue]_Windows_
 ** zipファイルもしくはmsiを使用する。 http://www.scala-sbt.org/0.13/tutorial/ja/Installing-sbt-on-Windows.html[ダウンロード, window="_blank"]
 * [red]_Mac_
@@ -71,7 +71,7 @@ CAUTION: Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとm
 
 .Scala開発でよく使う一覧（随時更新）
 |===
-|機能説明|Windows|Mac
+|機能説明|[blue]_Windows_|[red]_Mac_
 
 |検索
 |kbd:[Shift+Shift]
