@@ -412,6 +412,97 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .show-for-print{display:inherit!important}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+<style>
+/* Stylesheet for CodeRay to match GitHub theme | MIT License | http://foundation.zurb.com */
+/*pre.CodeRay {background-color:#f7f7f8;}*/
+.CodeRay .line-numbers{border-right:1px solid #d8d8d8;padding:0 0.5em 0 .25em}
+.CodeRay span.line-numbers{display:inline-block;margin-right:.5em;color:rgba(0,0,0,.3)}
+.CodeRay .line-numbers strong{font-weight: normal}
+table.CodeRay{border-collapse:separate;border-spacing:0;margin-bottom:0;border:0;background:none}
+table.CodeRay td{vertical-align: top}
+table.CodeRay td.line-numbers{text-align:right}
+table.CodeRay td.line-numbers>pre{padding:0;color:rgba(0,0,0,.3)}
+table.CodeRay td.code{padding:0 0 0 .5em}
+table.CodeRay td.code>pre{padding:0}
+.CodeRay .debug{color:#fff !important;background:#000080 !important}
+.CodeRay .annotation{color:#007}
+.CodeRay .attribute-name{color:#000080}
+.CodeRay .attribute-value{color:#700}
+.CodeRay .binary{color:#509}
+.CodeRay .comment{color:#998;font-style:italic}
+.CodeRay .char{color:#04d}
+.CodeRay .char .content{color:#04d}
+.CodeRay .char .delimiter{color:#039}
+.CodeRay .class{color:#458;font-weight:bold}
+.CodeRay .complex{color:#a08}
+.CodeRay .constant,.CodeRay .predefined-constant{color:#008080}
+.CodeRay .color{color:#099}
+.CodeRay .class-variable{color:#369}
+.CodeRay .decorator{color:#b0b}
+.CodeRay .definition{color:#099}
+.CodeRay .delimiter{color:#000}
+.CodeRay .doc{color:#970}
+.CodeRay .doctype{color:#34b}
+.CodeRay .doc-string{color:#d42}
+.CodeRay .escape{color:#666}
+.CodeRay .entity{color:#800}
+.CodeRay .error{color:#808}
+.CodeRay .exception{color:inherit}
+.CodeRay .filename{color:#099}
+.CodeRay .function{color:#900;font-weight:bold}
+.CodeRay .global-variable{color:#008080}
+.CodeRay .hex{color:#058}
+.CodeRay .integer,.CodeRay .float{color:#099}
+.CodeRay .include{color:#555}
+.CodeRay .inline{color:#00}
+.CodeRay .inline .inline{background:#ccc}
+.CodeRay .inline .inline .inline{background:#bbb}
+.CodeRay .inline .inline-delimiter{color:#d14}
+.CodeRay .inline-delimiter{color:#d14}
+.CodeRay .important{color:#555;font-weight:bold}
+.CodeRay .interpreted{color:#b2b}
+.CodeRay .instance-variable{color:#008080}
+.CodeRay .label{color:#970}
+.CodeRay .local-variable{color:#963}
+.CodeRay .octal{color:#40e}
+.CodeRay .predefined{color:#369}
+.CodeRay .preprocessor{color:#579}
+.CodeRay .pseudo-class{color:#555}
+.CodeRay .directive{font-weight:bold}
+.CodeRay .type{font-weight:bold}
+.CodeRay .predefined-type{color:inherit}
+.CodeRay .reserved,.CodeRay .keyword {color:#000;font-weight:bold}
+.CodeRay .key{color:#808}
+.CodeRay .key .delimiter{color:#606}
+.CodeRay .key .char{color:#80f}
+.CodeRay .value{color:#088}
+.CodeRay .regexp .delimiter{color:#808}
+.CodeRay .regexp .content{color:#808}
+.CodeRay .regexp .modifier{color:#808}
+.CodeRay .regexp .char{color:#d14}
+.CodeRay .regexp .function{color:#404;font-weight:bold}
+.CodeRay .string{color:#d20}
+.CodeRay .string .string .string{background:#ffd0d0}
+.CodeRay .string .content{color:#d14}
+.CodeRay .string .char{color:#d14}
+.CodeRay .string .delimiter{color:#d14}
+.CodeRay .shell{color:#d14}
+.CodeRay .shell .delimiter{color:#d14}
+.CodeRay .symbol{color:#990073}
+.CodeRay .symbol .content{color:#a60}
+.CodeRay .symbol .delimiter{color:#630}
+.CodeRay .tag{color:#008080}
+.CodeRay .tag-special{color:#d70}
+.CodeRay .variable{color:#036}
+.CodeRay .insert{background:#afa}
+.CodeRay .delete{background:#faa}
+.CodeRay .change{color:#aaf;background:#007}
+.CodeRay .head{color:#f8f;background:#505}
+.CodeRay .insert .insert{color:#080}
+.CodeRay .delete .delete{color:#800}
+.CodeRay .change .change{color:#66f}
+.CodeRay .head .head{color:#f4f}
+</style>
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -423,18 +514,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_intellij_idea">1. Intellij IDEA</a>
+<li><a href="#_getting_started">1. Getting Started</a>
 <ul class="sectlevel2">
-<li><a href="#_起動オプション">1.1. 起動オプション</a></li>
-<li><a href="#_ショートカット">1.2. ショートカット</a></li>
+<li><a href="#_scala_インストール">1.1. Scala インストール</a></li>
+<li><a href="#_scala_repl">1.2. Scala REPL</a></li>
+<li><a href="#_idea_インストール">1.3. IDEA インストール</a></li>
+<li><a href="#_idea_起動オプション">1.4. IDEA 起動オプション</a></li>
+<li><a href="#_idea_ショートカット">1.5. IDEA ショートカット</a></li>
 </ul>
 </li>
 <li><a href="#_scala">2. Scala</a>
 <ul class="sectlevel2">
-<li><a href="#_introduction">2.1. Introduction</a></li>
-<li><a href="#_option">2.2. Option</a></li>
-<li><a href="#_future">2.3. Future</a></li>
-<li><a href="#_collection">2.4. Collection</a></li>
+<li><a href="#_option">2.1. Option</a></li>
+<li><a href="#_future">2.2. Future</a></li>
+<li><a href="#_collection">2.3. Collection</a></li>
 </ul>
 </li>
 </ul>
@@ -443,33 +536,200 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="ulist">
-<ul>
+<div class="paragraph">
+<p><strong><em>目的</em></strong></p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
 <li>
-<p>IntelliJ IDEA</p>
+<p><i class="fa fa-check-square-o"></i> Scala初学者がScala独特の型や関数型思考なプログラミングの作法を理解できること。</p>
 </li>
 <li>
-<p>Scala</p>
-</li>
-<li>
-<p>Play2</p>
+<p><i class="fa fa-check-square-o"></i> PlayやSprayなどのフレームワークで実装する際の問題解決に役立つリファレンスを作成すること。</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_intellij_idea">1. Intellij IDEA</h2>
+<h2 id="_getting_started">1. Getting Started</h2>
 <div class="sectionbody">
-<div class="sidebarblock">
+<div class="ulist">
+<ul>
+<li>
+<p>Scalaの開発環境を整える。</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_scala_インストール">1.1. Scala インストール</h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+前提条件：JDKはインストール済みとする。
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+開発環境はMacで作成することを強くお勧めする。
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Scala</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em class="blue">Windows</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p>zipファイルもしくはmsiを使用する。 <a href="http://www.scala-lang.org/download/" target="_blank">ダウンロード</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><em class="red">Mac</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>$ brew install scala</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<ul>
+<li>
+<p>SBT</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em class="blue">Windows</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p>zipファイルもしくはmsiを使用する。 <a href="http://www.scala-sbt.org/0.13/tutorial/ja/Installing-sbt-on-Windows.html" target="_blank">ダウンロード</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><em class="red">Mac</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>$ brew install sbt</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_repl">1.2. Scala REPL</h3>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Read-Eval-Print-Loopと読む。
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>起動方法</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>$ scala</code></p>
+</li>
+<li>
+<p><code>$ sbt console</code></p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>利用シーン</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>関数やクラスを作成して、テストしたいとき。</p>
+</li>
+<li>
+<p>暇なとき。</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="ulist square">
+<ul class="square">
+<li>
+<p>例えばこんな具合である。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
 <div class="content">
-<div class="paragraph">
-<p>Intellij IDEAを初めて使う開発者を対象に説明する。</p>
+<pre class="CodeRay highlight"><code data-lang="java">yosemite:~ <span class="error">$</span> scala
+Welcome to Scala version <span class="float">2.11</span><span class="float">.6</span> (Java HotSpot(TM) <span class="integer">64</span>-Bit Server VM, Java <span class="float">1.8</span><span class="float">.0</span>_45).
+Type in expressions to have them evaluated.
+Type :help <span class="keyword">for</span> more information.
+
+scala&gt; val helo = <span class="string"><span class="delimiter">&quot;</span><span class="content">hello-world</span><span class="delimiter">&quot;</span></span>
+helo: <span class="predefined-type">String</span> = hello-world
+
+scala&gt; print(helo)
+hello-world
+scala&gt; :q</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_起動オプション">1.1. 起動オプション</h3>
+<h3 id="_idea_インストール">1.3. IDEA インストール</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.jetbrains.com/idea/download/">Download</a>サイトより（後はよしなに）</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_idea_起動オプション">1.4. IDEA 起動オプション</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -499,11 +759,50 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 </li>
+<li>
+<p>SBT起動オプション設定ファイル</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em class="blue">Windows</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p>SBTインストールフォルダ/config/sbtconfig.txt</p>
+</li>
 </ul>
+</div>
+</li>
+<li>
+<p><em class="red">Mac</em></p>
+<div class="ulist">
+<ul>
+<li>
+<p>/usr/local/etc/sbtopts</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとmemオプションの1/8のサイズがMaxMetaspaceSizeのデフォルトである。
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_ショートカット">1.2. ショートカット</h3>
+<h3 id="_idea_ショートカット">1.5. IDEA ショートカット</h3>
 <table class="tableblock frame-all grid-all spread">
 <caption class="title">Table 1. Scala開発でよく使う一覧（随時更新）</caption>
 <colgroup>
@@ -521,133 +820,143 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">検索</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift Shift</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift Shift</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>Shift</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>Shift</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">最近つかったファイル表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+E</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+E</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>E</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>E</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">宣言を開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+B</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+B</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>B</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>B</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">クラス（型）階層を開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+H</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Control+H</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>H</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Control</kbd>+<kbd>H</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">呼び出し階層を開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+Ctrl+H</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option+Control+H</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>Ctrl</kbd>+<kbd>H</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Option</kbd>+<kbd>Control</kbd>+<kbd>H</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">実装を開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Ctrlを押しながら選択)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option+Command+B (もしくはCtrlを押しながら選択)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Option</kbd>+<kbd>Command</kbd>+<kbd>B</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">アウトライン表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+F12</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+F12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>F12</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>F12</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">クラスを開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+N</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>N</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>O</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ファイルを開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Shift+N</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift+Command+O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>Command</kbd>+<kbd>O</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">暗黙パラメータを開く</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Shift+P</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift+Command+P</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>Command</kbd>+<kbd>P</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">コメントアウト</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+/</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+/</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>/</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>/</kbd></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">コメントアウト2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>/</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>/</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Link with Editor</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+F1, 1</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option+F1, 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>F1</kbd>+<kbd>1</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Option</kbd>+<kbd>F1</kbd>+<kbd>1</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">変数リネーム</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift+F6</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Shift+F6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>F6</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Shift</kbd>+<kbd>F6</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">リファクタリングメニュー表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+ALt+Shift+T</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Control+T</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>ALt</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Control</kbd>+<kbd>T</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">オーバーライドメソッド表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Control+O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>O</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Control</kbd>+<kbd>O</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジェネレートメニュー表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+Insert</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+N</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>Insert</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>N</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">インポート整理</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option+Control+O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Option</kbd>+<kbd>Control</kbd>+<kbd>O</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">行移動</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+Shift ↑↓</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Option+Shift ↑↓</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑↓</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Option</kbd>+<kbd>Shift</kbd>+<kbd>↑↓</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">行削除</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Y</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Y</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Y</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">タブ移動</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alt+　← →</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Opton+　← →</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Opton</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジャンプ履歴移動</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+　← →</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Option+　← →</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Option</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所をforなどで囲む</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+T</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+T</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Option</kbd>+<kbd>T</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所インライン化</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+N</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+N</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Option</kbd>+<kbd>N</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所メソッド化</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+M</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+M</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Option</kbd>+<kbd>M</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UML図の表示</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+U</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+U</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>U</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Option</kbd>+<kbd>U</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">フォーマット</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ctrl+Alt+L</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Command+Option+L</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>L</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Option</kbd>+<kbd>L</kbd></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ファイルを検索</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></span></p></td>
 </tr>
 </tbody>
 </table>
@@ -657,23 +966,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_scala">2. Scala</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_introduction">2.1. Introduction</h3>
-<div class="sect3">
-<h4 id="_本書の内容">2.1.1. 本書の内容</h4>
-
+<div class="paragraph">
+<p><span class="image" style="float: right"><img src="http://ecx.images-amazon.com/images/I/71S-49c4eZL.jpg" alt="Scalaスケーラブルプログラミング" width="100" height="150"></span></p>
 </div>
-<div class="sect3">
-<h4 id="_インストール">2.1.2. インストール</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_参考サイト">2.1.3. 参考サイト</h4>
-
-</div>
+<div class="paragraph">
+<p>いよいよScalaについて学習していこう。<br>
+詳細について知りたい場合は適宜Webの情報なども参照してほしい。<br>
+コップ本が手元にあればそちらも適宜参照してください。</p>
 </div>
 <div class="sect2">
-<h3 id="_option">2.2. Option</h3>
+<h3 id="_option">2.1. Option</h3>
 <div class="sidebarblock">
 <div class="content">
 <div class="paragraph">
@@ -683,12 +985,17 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 </div>
 </div>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"></code></pre>
+</div>
+</div>
 <div class="sect3">
-<h4 id="_some">2.2.1. Some</h4>
+<h4 id="_some">2.1.1. Some</h4>
 
 </div>
 <div class="sect3">
-<h4 id="_nullの扱い">2.2.2. nullの扱い</h4>
+<h4 id="_nullの扱い">2.1.2. nullの扱い</h4>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -707,12 +1014,12 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 </div>
 </div>
 <div class="sect3">
-<h4 id="_either">2.2.3. Either</h4>
+<h4 id="_either">2.1.3. Either</h4>
 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_future">2.3. Future</h3>
+<h3 id="_future">2.2. Future</h3>
 <div class="sidebarblock">
 <div class="content">
 <div class="paragraph">
@@ -723,16 +1030,16 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 </div>
 </div>
 <div class="sect3">
-<h4 id="_future_2">2.3.1. Future</h4>
+<h4 id="_future_2">2.2.1. Future</h4>
 
 </div>
 <div class="sect3">
-<h4 id="_for内包表記">2.3.2. for内包表記</h4>
+<h4 id="_for内包表記">2.2.2. for内包表記</h4>
 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_collection">2.4. Collection</h3>
+<h3 id="_collection">2.3. Collection</h3>
 <div class="sidebarblock">
 <div class="content">
 <div class="paragraph">
@@ -742,15 +1049,15 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 </div>
 </div>
 <div class="sect3">
-<h4 id="_set">2.4.1. Set</h4>
+<h4 id="_set">2.3.1. Set</h4>
 
 </div>
 <div class="sect3">
-<h4 id="_map">2.4.2. Map</h4>
+<h4 id="_map">2.3.2. Map</h4>
 
 </div>
 <div class="sect3">
-<h4 id="_seq">2.4.3. Seq</h4>
+<h4 id="_seq">2.3.3. Seq</h4>
 
 </div>
 </div>
@@ -760,7 +1067,7 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-15 06:35:27 JST
+Last updated 2015-09-21 19:42:36 JST
 </div>
 </div>
 </body>

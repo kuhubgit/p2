@@ -1,7 +1,187 @@
-== Introduction
+= Getting Started
+- Scalaの開発環境を整える。
 
-=== 本書の内容
+== Scala インストール
+WARNING: 前提条件：JDKはインストール済みとする。
 
-=== インストール
+TIP: 開発環境はMacで作成することを強くお勧めする。
 
-=== 参考サイト
+- Scala
+* [blue]_Windows_
+** zipファイルもしくはmsiを使用する。 http://www.scala-lang.org/download/[ダウンロード, window="_blank"]
+* [red]_Mac_
+** `$ brew install scala`
+
+'''
+- SBT
+* [blue]_Windows_
+** zipファイルもしくはmsiを使用する。 http://www.scala-sbt.org/0.13/tutorial/ja/Installing-sbt-on-Windows.html[ダウンロード, window="_blank"]
+* [red]_Mac_
+** `$ brew install sbt`
+
+== Scala REPL
+TIP: Read-Eval-Print-Loopと読む。
+
+- 起動方法
+. `$ scala`
+. `$ sbt console`
+
+- 利用シーン
+. 関数やクラスを作成して、テストしたいとき。
+. 暇なとき。
+
+[square]
+* 例えばこんな具合である。
+
+[source, java]
+----
+yosemite:~ $ scala
+Welcome to Scala version 2.11.6 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_45).
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> val helo = "hello-world"
+helo: String = hello-world
+
+scala> print(helo)
+hello-world
+scala> :q
+----
+
+== IDEA インストール
+* https://www.jetbrains.com/idea/download/[Download]サイトより（後はよしなに）
+
+== IDEA 起動オプション
+
+- 設定ファイル(eclipse.iniのようなもの)へJVMオプションを追加できる。
+* [blue]_Windows_
+** インストールフォルダ/bin/idea64.exe.vmoptions
+* [red]_Mac_
+** インストールアプリ/Contents/bin/idea.vmoptions
+
+- SBT起動オプション設定ファイル
+* [blue]_Windows_
+** SBTインストールフォルダ/config/sbtconfig.txt
+* [red]_Mac_
+** /usr/local/etc/sbtopts
+
+CAUTION: Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとmemオプションの1/8のサイズがMaxMetaspaceSizeのデフォルトである。
+
+== IDEA ショートカット
+
+.Scala開発でよく使う一覧（随時更新）
+|===
+|機能説明|Windows|Mac
+
+|検索
+|kbd:[Shift+Shift]
+|kbd:[Shift+Shift]
+
+|最近つかったファイル表示
+|kbd:[Ctrl+E]
+|kbd:[Command+E]
+
+|宣言を開く
+|kbd:[Ctrl+B]
+|kbd:[Command+B]
+
+|クラス（型）階層を開く
+|kbd:[Ctrl+H]
+|kbd:[Control+H]
+
+|呼び出し階層を開く
+|kbd:[Alt+Ctrl+H]
+|kbd:[Option+Control+H]
+
+|実装を開く
+|kbd:[Ctrl+Alt+B]
+|kbd:[Option+Command+B]
+
+|アウトライン表示
+|kbd:[Ctrl+F12]
+|kbd:[Command+F12]
+
+|クラスを開く
+|kbd:[Ctrl+N]
+|kbd:[Command+O]
+
+|ファイルを開く
+|kbd:[Ctrl+Shift+N]
+|kbd:[Shift+Command+O]
+
+|暗黙パラメータを開く
+|kbd:[Ctrl+Shift+P]
+|kbd:[Shift+Command+P]
+
+|コメントアウト
+|kbd:[Ctrl+/]
+|kbd:[Command+/]
+
+|コメントアウト2
+|kbd:[Ctrl+Shift+/]
+|kbd:[Command+Shift+/]
+
+|Link with Editor
+|kbd:[Alt+F1, 1]
+|kbd:[Option+F1, 1]
+
+|変数リネーム
+|kbd:[Shift+F6]
+|kbd:[Shift+F6]
+
+|リファクタリングメニュー表示
+|kbd:[Ctrl+ALt+Shift+T]
+|kbd:[Control+T]
+
+|オーバーライドメソッド表示
+|kbd:[Ctrl+O]
+|kbd:[Control+O]
+
+|ジェネレートメニュー表示
+|kbd:[Alt+Insert]
+|kbd:[Command+N]
+
+|インポート整理
+|kbd:[Ctrl+Alt+O]
+|kbd:[Option+Control+O]
+
+|行移動
+|kbd:[Alt+Shift+↑↓]
+|kbd:[Option+Shift+↑↓]
+
+|行削除
+|kbd:[Ctrl+Y]
+|kbd:[Command+Y]
+
+|タブ移動
+|kbd:[Alt+&#8592; &#8594;]
+|kbd:[Opton+&#8592; &#8594;]
+
+|ジャンプ履歴移動
+|kbd:[Ctrl+Alt+&#8592; &#8594;]
+|kbd:[Ctrl+Option+&#8592; &#8594;]
+
+|選択箇所をforなどで囲む
+|kbd:[Ctrl+Alt+T]
+|kbd:[Command+Option+T]
+
+|選択箇所インライン化
+|kbd:[Ctrl+Alt+N]
+|kbd:[Command+Option+N]
+
+|選択箇所メソッド化
+|kbd:[Ctrl+Alt+M]
+|kbd:[Command+Option+M]
+
+|UML図の表示
+|kbd:[Ctrl+Alt+U]
+|kbd:[Command+Option+U]
+
+|フォーマット
+|kbd:[Ctrl+Alt+L]
+|kbd:[Command+Option+L]
+
+|ファイルを検索
+|kbd:[Ctrl+Shift+F]
+|kbd:[Command+Shift+F]
+|===

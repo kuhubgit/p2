@@ -12,21 +12,30 @@ forrestinc
 :docinfo1:
 :numbered!:
 :toc2:
+:linkattrs:
+:experimental:
+:source-highlighter: coderay
 
-// リスト
-- IntelliJ IDEA
-- Scala
-- Play2
+
+*_目的_*
+[%hardbreaks]
+- [*] Scala初学者がScala独特の型や関数型思考なプログラミングの作法を理解できること。
+- [*] PlayやSprayなどのフレームワークで実装する際の問題解決に役立つリファレンスを作成すること。
 
 :leveloffset: 1
 
 :numbered:
-= Intellij IDEA
-include::intellij/readme.adoc[]
-
-= Scala
 
 include::scala/1_Introduction/readme.adoc[]
+= Scala
+
+image:http://ecx.images-amazon.com/images/I/71S-49c4eZL.jpg[Scalaスケーラブルプログラミング, 100,150, float="right",align="center"]
+
+[%hardbreaks]
+いよいよScalaについて学習していこう。
+詳細について知りたい場合は適宜Webの情報なども参照してほしい。
+コップ本が手元にあればそちらも適宜参照してください。
+
 include::scala/2_Option/readme.adoc[]
 include::scala/3_Future/readme.adoc[]
 include::scala/4_Collection/readme.adoc[]
