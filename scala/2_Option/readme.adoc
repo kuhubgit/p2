@@ -8,8 +8,14 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 
 いきなりだがソースコードを見ていく。
 
-.scala.Option#apply
+TIP: 以降の章をスムーズに読み進めるために、ソースコードを確認できる環境を整えておくとよい。
+IntellijIDEAで適当なScalaプロジェクトを開いて、kbd:[Ctrl+N] (OSXの場合はkbd:[Command+B])で直接エディターで開いてみるのがよいだろう。
 
+=== apply
+
+- applyメソッドはOptionコンパニオンオブジェクトに定義されている。
+
+.scala.Option#apply
 [source, java]
 ----
 object Option {
@@ -37,18 +43,23 @@ object Option {
 
 - applyメソッドはScalaでは特別なメソッドとして解釈される。つまりOptionは以下のように生成できることになる。
 
+[square]
+- Optionの生成
+
 [source, java]
 ----
 val opt = Option("this is option type.")
+opt: Option[String] = Some(this is option type.)
 ----
-
-- applyメソッドによりこれは `Some("this is option type.")` となる。
-
-- またapplyメソッドはOptionコンパニオンオブジェクトに定義されている。
 
 NOTE: コンパニオンオブジェクトやapplyメソッドや抽出子(unapply)については別項で説明するものとする。
 
 さらにソースコードを見ていく。
+
+=== get
+
+- getメソッドはOptionから値を取得する一番簡単なメソッドである。しかし `NoSuchElementException` をthrowするため、安易な使用は推奨されない。footnote:[メソッドの特性を理解した上で適宜使い分けたい。getの使用が適当な箇所もあるはずである。]
+- ただし、Optionの他メソッド内では値を取得するために使用されているメソッドである。
 
 .scala.Option#get
 [source, java]
@@ -69,11 +80,14 @@ def get: A
 ----
 - getメソッドの戻り値がA型となっており、Option[String]型であればString型が取得できることがわかる。
 - getOtElseメソッドはisEmptyの実装（後述）によりデフォルト値を返却する場合とgetを呼び出す分岐がある。
-- これらのメソッドはabstract class で定義されており、Optionの具象クラスはcase class として *Some* と *None* が定義されている。さらにこれらクラスにisEmptyの実装がある。
+- これらのメソッドはabstract class で定義されており、Some(final case class)とNone(case object)にisEmptyの実装がある。
+- 実際の場面ではgetやgetOrElseを直接使うよりもmapやflatMapメソッドを経由して値を取り出すことが多いかもしれない。
 
 '''
-[square]
-* さて、ここまででもOptionを生成して値を取り出すことがなんとなくできるようになった。ここからはさらに便利な定義済メソッドを見ていく。
+
+=== map,flatMap,fold
+
+- 関数型言語で頻出のこれらのメソッドを簡単に押さえておきたい。これらのメソッドシグネチャを理解し、関数的な思考センスを磨きたいところである。
 
 .scala.Option#map
 [source, java]
@@ -117,7 +131,7 @@ def get: A
 @inline final def flatMap[B](f: A => Option[B]): Option[B] =
   if (isEmpty) None else f(this.get)
 ----
-* mapメソッドを実際に使ってみよう。
+* map
 
 [source, java]
 ----
@@ -126,7 +140,7 @@ val b = opt.map(a => Seq(a))
 ----
 bは実際にSome(List(helo))のようなオブジェクトになる。
 
-* flatMapはどうか？
+* flatMap
 
 [source, java]
 ----
@@ -134,7 +148,7 @@ val opt = Option("helo")
 val b = opt.flatMap(a => Seq(a))
 ----
 [%hardbreaks]
-これは [red]_error: type mismatch;_となりコンパイルできない。なぜか。
+これは [red]_error: type mismatch;_ となりコンパイルできない。なぜか。
 flatMapの引数は `(f: A => Option[B])` になっており、マッピング先の型はOption型でなければならない。
 以下のような形であればコンパイルできる。
 
@@ -148,7 +162,7 @@ bは実際にSome(List(helo))のようなオブジェクトになる。
 * mapとflatMapの違い
 ** `f(this.get)` を呼び出すことは変わりはないが、mapの場合は自身の関数の中でSomeでラップしており、flatMapは引数の関数の戻り値にOption型を要求することで自身の戻り値をOption型としている。
 
-* foldの使用例
+* fold
 
 [source, java]
 ----
@@ -157,8 +171,10 @@ val b = opt.fold(Some(Seq("none")))(a => Some(Seq(a)))
 ----
 isEmptyがtrue(Noneの場合)は第一引数の関数（左側の関数）が実行され、そうでない場合は第二引数の関数（右側の関数）が実行される。
 
-'''
-上記のメソッド以外にも便利なメソッドがOptionクラスには定義されているが、最後にcollectメソッドをみてみよう。
+=== collect
+
+- collectという名称から何かしらの条件にマッチしたものだけを取得できそうなメソッドのような感じを受ける。
+- では実際にソースをみていく。
 
 .scala.Option#collect
 [source, java]
@@ -190,12 +206,51 @@ val b = opt.collect(pf)
 ----
 bはSome(bingo!)になっている。
 
-// TODO:PartialFunctionの簡単な説明
+TODO: PartialFunctionの簡単な説明
 
 === nullの扱い
-. None
-. Nothing
-. Nil
-. null
+
+* None
+- NoneはOption[Nothing]を継承した `case object` である。
+
+.Option.scala
+[source, java]
+----
+case object None extends Option[Nothing] {
+  def isEmpty = true
+  def get = throw new NoSuchElementException("None.get")
+}
+----
+
+* Nothing
+- 通常のコーディングで使うことはまずないと思われる。型である。ただしライブラリの設計を行う場合は概念を理解する必要はありそうだ。
+- ここでは深く取り上げないことにする。
+
+* Nil
+- 空のListである。List[Nothing]を継承した `case object` である。
+
+.List.scala
+[source, java]
+----
+case object Nil extends List[Nothing] {
+  override def isEmpty = true
+  override def head: Nothing =
+    throw new NoSuchElementException("head of empty list")
+  override def tail: List[Nothing] =
+    throw new UnsupportedOperationException("tail of empty list")
+  // Removal of equals method here might lead to an infinite recursion similar to IntMap.equals.
+  override def equals(that: Any) = that match {
+    case that1: scala.collection.GenSeq[_] => that1.isEmpty
+    case _ => false
+  }
+}
+----
+
+* null
+- nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。
+- ただし、Javaのライブラリを使用している場合は普通にScalaでも `NullPointerException` は発生する。
+- 基本的にnullが現れないようなコーディングを心がけたい。
 
 === Either
+
+=== Try

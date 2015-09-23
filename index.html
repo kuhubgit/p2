@@ -412,6 +412,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .show-for-print{display:inherit!important}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -421,7 +424,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <span id="revnumber">version 1.0</span>
 </div>
 <div id="toc" class="toc2">
-<div id="toctitle">Table of Contents</div>
+<div id="toctitle">目次</div>
 <ul class="sectlevel1">
 <li><a href="#_getting_started">1. Getting Started</a>
 <ul class="sectlevel2">
@@ -434,9 +437,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_scala">2. Scala</a>
 <ul class="sectlevel2">
-<li><a href="#_option">2.1. Option</a></li>
-<li><a href="#_future">2.2. Future</a></li>
-<li><a href="#_collection">2.3. Collection</a></li>
+<li><a href="#_option">2.1. Option</a>
+<ul class="sectlevel3">
+<li><a href="#_apply">2.1.1. apply</a></li>
+<li><a href="#_get">2.1.2. get</a></li>
+<li><a href="#_map_flatmap_fold">2.1.3. map,flatMap,fold</a></li>
+<li><a href="#_collect">2.1.4. collect</a></li>
+<li><a href="#_nullの扱い">2.1.5. nullの扱い</a></li>
+<li><a href="#_either">2.1.6. Either</a></li>
+<li><a href="#_try">2.1.7. Try</a></li>
+</ul>
+</li>
+<li><a href="#_future">2.2. Future</a>
+<ul class="sectlevel3">
+<li><a href="#_future_2">2.2.1. Future</a></li>
+<li><a href="#_for内包表記">2.2.2. for内包表記</a></li>
+</ul>
+</li>
+<li><a href="#_collection">2.3. Collection</a>
+<ul class="sectlevel3">
+<li><a href="#_set">2.3.1. Set</a></li>
+<li><a href="#_map">2.3.2. Map</a></li>
+<li><a href="#_seq">2.3.3. Seq</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -613,13 +637,13 @@ Read-Eval-Print-Loopと読む。
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">yosemite:~ <span style="color:#F00;background-color:#FAA">$</span> scala
-Welcome to Scala version <span style="color:#60E">2.11</span><span style="color:#60E">.6</span> (Java HotSpot(TM) <span style="color:#00D">64</span>-Bit Server VM, Java <span style="color:#60E">1.8</span><span style="color:#60E">.0</span>_45).
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">yosemite:~ $ scala
+Welcome to Scala version 2.11.6 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_45).
 Type in expressions to have them evaluated.
-Type :help <span style="color:#080;font-weight:bold">for</span> more information.
+Type :help for more information.
 
-scala&gt; val helo = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">hello-world</span><span style="color:#710">&quot;</span></span>
-helo: <span style="color:#0a8;font-weight:bold">String</span> = hello-world
+scala&gt; val helo = "hello-world"
+helo: String = hello-world
 
 scala&gt; print(helo)
 hello-world
@@ -713,7 +737,7 @@ Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとmemオプ�
 <div class="sect2">
 <h3 id="_idea_ショートカット">1.5. IDEA ショートカット</h3>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 1. Scala開発でよく使う一覧（随時更新）</caption>
+<caption class="title">Table 1. Scala開発でよく使う一覧</caption>
 <colgroup>
 <col style="width: 33%;">
 <col style="width: 33%;">
@@ -829,13 +853,13 @@ Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとmemオプ�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">タブ移動</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Opton</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Alt</kbd>+<kbd>&#8594; &#8592;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Opton</kbd>+<kbd>&#8594; &#8592;</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジャンプ履歴移動</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Option</kbd>+<kbd>&#8592; &#8594;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>&#8594; &#8592;</kbd></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="keyseq"><kbd>Ctrl</kbd>+<kbd>Option</kbd>+<kbd>&#8594; &#8592;</kbd></span></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">選択箇所をforなどで囲む</p></td>
@@ -897,29 +921,51 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 <div class="paragraph">
 <p>いきなりだがソースコードを見ていく。</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+以降の章をスムーズに読み進めるために、ソースコードを確認できる環境を整えておくとよい。
+IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyseq"><kbd>Ctrl</kbd>+<kbd>N</kbd></span> (OSXの場合は<span class="keyseq"><kbd>Command</kbd>+<kbd>B</kbd></span>)で直接エディターで開いてみるのがよいだろう。
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_apply">2.1.1. apply</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>applyメソッドはOptionコンパニオンオブジェクトに定義されている。</p>
+</li>
+</ul>
+</div>
 <div class="listingblock">
 <div class="title">scala.Option#apply</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">object <span style="color:#0a8;font-weight:bold">Option</span> {
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">object Option {
 
-  <span style="color:#080;font-weight:bold">import</span> <span style="color:#B44;font-weight:bold">scala.language.implicitConversions</span>
+  import scala.language.implicitConversions
 
-  <span style="color:#777">/** An implicit conversion that converts an option to an iterable value
-   */</span>
-  <span style="color:#B44;font-weight:bold">implicit</span> <span style="color:#B44;font-weight:bold">def</span> <span style="color:#B44;font-weight:bold">option2Iterable</span>[<span style="color:#B44;font-weight:bold">A</span>](<span style="color:#B44;font-weight:bold">xo</span>: <span style="color:#B44;font-weight:bold">Option</span>[<span style="color:#B44;font-weight:bold">A</span>]): <span style="color:#B44;font-weight:bold">Iterable</span>[<span style="color:#B44;font-weight:bold">A</span>] = <span style="color:#B44;font-weight:bold">xo.toList</span>
+  /** An implicit conversion that converts an option to an iterable value
+   */
+  implicit def option2Iterable[A](xo: Option[A]): Iterable[A] = xo.toList
 
-  <span style="color:#777">/** An Option factory which creates Some(x) if the argument is not null,
+  /** An Option factory which creates Some(x) if the argument is not null,
    *  and None if it is null.
    *
    *  @param  x the value
    *  @return   Some(value) if value != null, None if value == null
-   */</span>
-  <span style="color:#B44;font-weight:bold">def</span> <span style="color:#B44;font-weight:bold">apply</span>[<span style="color:#B44;font-weight:bold">A</span>](<span style="color:#B44;font-weight:bold">x</span>: <span style="color:#B44;font-weight:bold">A</span>): <span style="color:#B44;font-weight:bold">Option</span>[<span style="color:#B44;font-weight:bold">A</span>] = <span style="color:#B44;font-weight:bold">if</span> (<span style="color:#B44;font-weight:bold">x</span> == <span style="color:#B44;font-weight:bold">null</span>) <span style="color:#B44;font-weight:bold">None</span> <span style="color:#B44;font-weight:bold">else</span> <span style="color:#B44;font-weight:bold">Some</span>(<span style="color:#B44;font-weight:bold">x</span>)
+   */
+  def apply[A](x: A): Option[A] = if (x == null) None else Some(x)
 
-  <span style="color:#777">/** An Option factory which returns `None` in a manner consistent with
+  /** An Option factory which returns `None` in a manner consistent with
    *  the collections hierarchy.
-   */</span>
-  <span style="color:#B44;font-weight:bold">def</span> <span style="color:#B44;font-weight:bold">empty</span>[<span style="color:#B44;font-weight:bold">A</span>] : <span style="color:#B44;font-weight:bold">Option</span>[<span style="color:#B44;font-weight:bold">A</span>] = <span style="color:#B44;font-weight:bold">None</span>
+   */
+  def empty[A] : Option[A] = None
 }</code></pre>
 </div>
 </div>
@@ -930,20 +976,18 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 </li>
 </ul>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">this is option type.</span><span style="color:#710">&quot;</span></span>)</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
+<div class="ulist square">
+<ul class="square">
 <li>
-<p>applyメソッドによりこれは <code>Some("this is option type.")</code> となる。</p>
-</li>
-<li>
-<p>またapplyメソッドはOptionコンパニオンオブジェクトに定義されている。</p>
+<p>Optionの生成</p>
 </li>
 </ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("this is option type.")
+opt: Option[String] = Some(this is option type.)</code></pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -960,22 +1004,35 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 <div class="paragraph">
 <p>さらにソースコードを見ていく。</p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_get">2.1.2. get</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>getメソッドはOptionから値を取得する一番簡単なメソッドである。しかし <code>NoSuchElementException</code> をthrowするため、安易な使用は推奨されない。<span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span></p>
+</li>
+<li>
+<p>ただし、Optionの他メソッド内では値を取得するために使用されているメソッドである。</p>
+</li>
+</ul>
+</div>
 <div class="listingblock">
 <div class="title">scala.Option#get</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#777">/** Returns the option's value.
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns the option's value.
  *  @note The option must be nonEmpty.
  *  @throws Predef.NoSuchElementException if the option is empty.
- */</span>
+ */
 def get: A
 
-<span style="color:#777">/** Returns the option's value if the option is nonempty, otherwise
+/** Returns the option's value if the option is nonempty, otherwise
  * return the result of evaluating `default`.
  *
  *  @param default  the default expression.
- */</span>
-<span style="color:#007">@inline</span> <span style="color:#088;font-weight:bold">final</span> def getOrElse[B &gt;: A](<span style="color:#080;font-weight:bold">default</span>: =&gt; B): B =
-  <span style="color:#080;font-weight:bold">if</span> (isEmpty) <span style="color:#080;font-weight:bold">default</span> <span style="color:#080;font-weight:bold">else</span> <span style="color:#950">this</span>.get</code></pre>
+ */
+@inline final def getOrElse[B &gt;: A](default: =&gt; B): B =
+  if (isEmpty) default else this.get</code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -987,22 +1044,28 @@ def get: A
 <p>getOtElseメソッドはisEmptyの実装（後述）によりデフォルト値を返却する場合とgetを呼び出す分岐がある。</p>
 </li>
 <li>
-<p>これらのメソッドはabstract class で定義されており、Optionの具象クラスはcase class として <strong>Some</strong> と <strong>None</strong> が定義されている。さらにこれらクラスにisEmptyの実装がある。</p>
+<p>これらのメソッドはabstract class で定義されており、Some(final case class)とNone(case object)にisEmptyの実装がある。</p>
+</li>
+<li>
+<p>実際の場面ではgetやgetOrElseを直接使うよりもmapやflatMapメソッドを経由して値を取り出すことが多いかもしれない。</p>
 </li>
 </ul>
 </div>
 <hr>
-<div class="ulist square">
-<ul class="square">
+</div>
+<div class="sect3">
+<h4 id="_map_flatmap_fold">2.1.3. map,flatMap,fold</h4>
+<div class="ulist">
+<ul>
 <li>
-<p>さて、ここまででもOptionを生成して値を取り出すことがなんとなくできるようになった。ここからはさらに便利な定義済メソッドを見ていく。</p>
+<p>関数型言語で頻出のこれらのメソッドを簡単に押さえておきたい。これらのメソッドシグネチャを理解し、関数的な思考センスを磨きたいところである。</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="title">scala.Option#map</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#777">/** Returns a $some containing the result of applying $f to this $option's
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns a $some containing the result of applying $f to this $option's
  * value if this $option is nonempty.
  * Otherwise return $none.
  *
@@ -1012,11 +1075,11 @@ def get: A
  *  @param  f   the function to apply
  *  @see flatMap
  *  @see foreach
- */</span>
-<span style="color:#007">@inline</span> <span style="color:#088;font-weight:bold">final</span> def map[B](f: A =&gt; B): <span style="color:#0a8;font-weight:bold">Option</span>[B] =
-  <span style="color:#080;font-weight:bold">if</span> (isEmpty) None <span style="color:#080;font-weight:bold">else</span> Some(f(<span style="color:#950">this</span>.get))
+ */
+@inline final def map[B](f: A =&gt; B): Option[B] =
+  if (isEmpty) None else Some(f(this.get))
 
-<span style="color:#777">/** Returns the result of applying $f to this $option's
+/** Returns the result of applying $f to this $option's
  *  value if the $option is nonempty.  Otherwise, evaluates
  *  expression `ifEmpty`.
  *
@@ -1024,11 +1087,11 @@ def get: A
  *
  *  @param  ifEmpty the expression to evaluate if empty.
  *  @param  f       the function to apply if nonempty.
- */</span>
-<span style="color:#007">@inline</span> <span style="color:#088;font-weight:bold">final</span> def fold[B](ifEmpty: =&gt; B)(f: A =&gt; B): B =
-  <span style="color:#080;font-weight:bold">if</span> (isEmpty) ifEmpty <span style="color:#080;font-weight:bold">else</span> f(<span style="color:#950">this</span>.get)
+ */
+@inline final def fold[B](ifEmpty: =&gt; B)(f: A =&gt; B): B =
+  if (isEmpty) ifEmpty else f(this.get)
 
-<span style="color:#777">/** Returns the result of applying $f to this $option's value if
+/** Returns the result of applying $f to this $option's value if
  * this $option is nonempty.
  * Returns $none if this $option is empty.
  * Slightly different from `map` in that $f is expected to
@@ -1037,21 +1100,21 @@ def get: A
  *  @param  f   the function to apply
  *  @see map
  *  @see foreach
- */</span>
-<span style="color:#007">@inline</span> <span style="color:#088;font-weight:bold">final</span> def flatMap[B](f: A =&gt; <span style="color:#0a8;font-weight:bold">Option</span>[B]): <span style="color:#0a8;font-weight:bold">Option</span>[B] =
-  <span style="color:#080;font-weight:bold">if</span> (isEmpty) None <span style="color:#080;font-weight:bold">else</span> f(<span style="color:#950">this</span>.get)</code></pre>
+ */
+@inline final def flatMap[B](f: A =&gt; Option[B]): Option[B] =
+  if (isEmpty) None else f(this.get)</code></pre>
 </div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>mapメソッドを実際に使ってみよう。</p>
+<p>map</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">helo</span><span style="color:#710">&quot;</span></span>)
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
 val b = opt.map(a =&gt; Seq(a))</code></pre>
 </div>
 </div>
@@ -1061,24 +1124,24 @@ val b = opt.map(a =&gt; Seq(a))</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p>flatMapはどうか？</p>
+<p>flatMap</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">helo</span><span style="color:#710">&quot;</span></span>)
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
 val b = opt.flatMap(a =&gt; Seq(a))</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>これは [red]_error: type mismatch;_となりコンパイルできない。なぜか。<br>
+<p>これは <em class="red">error: type mismatch;</em> となりコンパイルできない。なぜか。<br>
 flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、マッピング先の型はOption型でなければならない。<br>
 以下のような形であればコンパイルできる。</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">helo</span><span style="color:#710">&quot;</span></span>)
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
 val b = opt.flatMap(a =&gt; Some(Seq(a)))</code></pre>
 </div>
 </div>
@@ -1098,27 +1161,36 @@ val b = opt.flatMap(a =&gt; Some(Seq(a)))</code></pre>
 </div>
 </li>
 <li>
-<p>foldの使用例</p>
+<p>fold</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">helo</span><span style="color:#710">&quot;</span></span>)
-val b = opt.fold(Some(Seq(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">none</span><span style="color:#710">&quot;</span></span>)))(a =&gt; Some(Seq(a)))</code></pre>
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
+val b = opt.fold(Some(Seq("none")))(a =&gt; Some(Seq(a)))</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>isEmptyがtrue(Noneの場合)は第一引数の関数（左側の関数）が実行され、そうでない場合は第二引数の関数（右側の関数）が実行される。</p>
 </div>
-<hr>
-<div class="paragraph">
-<p>上記のメソッド以外にも便利なメソッドがOptionクラスには定義されているが、最後にcollectメソッドをみてみよう。</p>
+</div>
+<div class="sect3">
+<h4 id="_collect">2.1.4. collect</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>collectという名称から何かしらの条件にマッチしたものだけを取得できそうなメソッドのような感じを受ける。</p>
+</li>
+<li>
+<p>では実際にソースをみていく。</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="title">scala.Option#collect</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#777">/** Returns a $some containing the result of
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns a $some containing the result of
  * applying `pf` to this $option's contained
  * value, '''if''' this option is
  * nonempty '''and''' `pf` is defined for that value.
@@ -1127,9 +1199,9 @@ val b = opt.fold(Some(Seq(<span style="background-color:hsla(0,100%,50%,0.05)"><
  *  @param  pf   the partial function.
  *  @return the result of applying `pf` to this $option's
  *  value (if possible), or $none.
- */</span>
-<span style="color:#007">@inline</span> <span style="color:#088;font-weight:bold">final</span> def collect[B](pf: PartialFunction[A, B]): <span style="color:#0a8;font-weight:bold">Option</span>[B] =
-  <span style="color:#080;font-weight:bold">if</span> (!isEmpty &amp;&amp; pf.isDefinedAt(<span style="color:#950">this</span>.get)) Some(pf(<span style="color:#950">this</span>.get)) <span style="color:#080;font-weight:bold">else</span> None</code></pre>
+ */
+@inline final def collect[B](pf: PartialFunction[A, B]): Option[B] =
+  if (!isEmpty &amp;&amp; pf.isDefinedAt(this.get)) Some(pf(this.get)) else None</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -1155,35 +1227,114 @@ val b = opt.fold(Some(Seq(<span style="background-color:hsla(0,100%,50%,0.05)"><
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">val opt = <span style="color:#0a8;font-weight:bold">Option</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">partial</span><span style="color:#710">&quot;</span></span>)
-val pf: PartialFunction[<span style="color:#0a8;font-weight:bold">String</span>,<span style="color:#0a8;font-weight:bold">String</span>] = {<span style="color:#080;font-weight:bold">case</span> <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">partial</span><span style="color:#710">&quot;</span></span> =&gt; <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">bingo!</span><span style="color:#710">&quot;</span></span>}
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("partial")
+val pf: PartialFunction[String,String] = {case "partial" =&gt; "bingo!"}
 val b = opt.collect(pf)</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>bはSome(bingo!)になっている。</p>
 </div>
+<div class="paragraph">
+<p>TODO: PartialFunctionの簡単な説明</p>
+</div>
+</div>
 <div class="sect3">
-<h4 id="_nullの扱い">2.1.1. nullの扱い</h4>
-<div class="olist arabic">
-<ol class="arabic">
+<h4 id="_nullの扱い">2.1.5. nullの扱い</h4>
+<div class="ulist">
+<ul>
 <li>
 <p>None</p>
+<div class="ulist">
+<ul>
+<li>
+<p>NoneはOption[Nothing]を継承した <code>case object</code> である。</p>
 </li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Option.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">case object None extends Option[Nothing] {
+  def isEmpty = true
+  def get = throw new NoSuchElementException("None.get")
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
 <li>
 <p>Nothing</p>
+<div class="ulist">
+<ul>
+<li>
+<p>通常のコーディングで使うことはまずないと思われる。型である。ただしライブラリの設計を行う場合は概念を理解する必要はありそうだ。</p>
+</li>
+<li>
+<p>ここでは深く取り上げないことにする。</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
 <p>Nil</p>
+<div class="ulist">
+<ul>
+<li>
+<p>空のListである。List[Nothing]を継承した <code>case object</code> である。</p>
 </li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">List.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java" data-lang="java">case object Nil extends List[Nothing] {
+  override def isEmpty = true
+  override def head: Nothing =
+    throw new NoSuchElementException("head of empty list")
+  override def tail: List[Nothing] =
+    throw new UnsupportedOperationException("tail of empty list")
+  // Removal of equals method here might lead to an infinite recursion similar to IntMap.equals.
+  override def equals(that: Any) = that match {
+    case that1: scala.collection.GenSeq[_] =&gt; that1.isEmpty
+    case _ =&gt; false
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
 <li>
 <p>null</p>
+<div class="ulist">
+<ul>
+<li>
+<p>nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。</p>
 </li>
-</ol>
+<li>
+<p>ただし、Javaのライブラリを使用している場合は普通にScalaでも <code>NullPointerException</code> は発生する。</p>
+</li>
+<li>
+<p>基本的にnullが現れないようなコーディングを心がけたい。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_either">2.1.2. Either</h4>
+<h4 id="_either">2.1.6. Either</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_try">2.1.7. Try</h4>
 
 </div>
 </div>
@@ -1233,10 +1384,16 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 </div>
 </div>
 </div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnote_1">
+<a href="#_footnoteref_1">1</a>. メソッドの特性を理解した上で適宜使い分けたい。getの使用が適当な箇所もあるはずである。
+</div>
+</div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-21 22:32:53 JST
+Last updated 2015-09-23 15:11:56 JST
 </div>
 </div>
 </body>

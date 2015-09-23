@@ -69,7 +69,7 @@ CAUTION: Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとm
 
 == IDEA ショートカット
 
-.Scala開発でよく使う一覧（随時更新）
+.Scala開発でよく使う一覧
 |===
 |機能説明|[blue]_Windows_|[red]_Mac_
 
@@ -154,12 +154,12 @@ CAUTION: Macの場合、起動スクリプトのsbt-launch-lib.bashをみるとm
 |kbd:[Command+Y]
 
 |タブ移動
-|kbd:[Alt+&#8592; &#8594;]
-|kbd:[Opton+&#8592; &#8594;]
+|kbd:[Alt+-> <-]
+|kbd:[Opton+-> <-]
 
 |ジャンプ履歴移動
-|kbd:[Ctrl+Alt+&#8592; &#8594;]
-|kbd:[Ctrl+Option+&#8592; &#8594;]
+|kbd:[Ctrl+Alt+-> <-]
+|kbd:[Ctrl+Option+-> <-]
 
 |選択箇所をforなどで囲む
 |kbd:[Ctrl+Alt+T]
