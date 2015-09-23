@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.2">
 <meta name="description" content="2015/09-2016/03">
-<meta name="keywords" content="Scala,Play2,SpringBoot,Intellij,Docker,圏論,AsciiDoctor,Electron,React">
+<meta name="keywords" content="Scala,Play2,IntellijIDEA,圏論,AsciiDoctor">
 <meta name="author" content="since 2015">
 <title>Scala Developer&#8217;s Guide</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
@@ -412,9 +412,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .show-for-print{display:inherit!important}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -450,8 +447,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_future">2.2. Future</a>
 <ul class="sectlevel3">
-<li><a href="#_future_2">2.2.1. Future</a></li>
-<li><a href="#_for内包表記">2.2.2. for内包表記</a></li>
+<li><a href="#_futureとは">2.2.1. Futureとは</a></li>
+<li><a href="#_onsuccess">2.2.2. onSuccess</a></li>
+<li><a href="#_onfailure">2.2.3. onFailure</a></li>
+<li><a href="#_map_flatmap_collect">2.2.4. map, flatMap, collect</a></li>
+<li><a href="#_recover_recoverwith">2.2.5. recover, recoverWith</a></li>
+<li><a href="#_zip_mapto_transform">2.2.6. zip, mapTo, transform</a></li>
+<li><a href="#_andthen">2.2.7. andThen</a></li>
+<li><a href="#_object_future">2.2.8. object Future</a></li>
+<li><a href="#_for内包表記">2.2.9. for内包表記</a></li>
+<li><a href="#_akka_actor">2.2.10. Akka Actor</a></li>
 </ul>
 </li>
 <li><a href="#_collection">2.3. Collection</a>
@@ -637,17 +642,17 @@ Read-Eval-Print-Loopと読む。
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">yosemite:~ $ scala
-Welcome to Scala version 2.11.6 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_45).
-Type in expressions to have them evaluated.
-Type :help for more information.
+<pre class="pygments highlight"><code data-lang="java"><span style="color: #A0A000">yosemite:</span><span style="color: #666666">~</span> $ scala
+Welcome to Scala version <span style="color: #666666">2.11.6</span> <span style="color: #666666">(</span>Java <span style="color: #0000FF">HotSpot</span><span style="color: #666666">(</span>TM<span style="color: #666666">)</span> <span style="color: #666666">64-</span>Bit Server VM<span style="color: #666666">,</span> Java <span style="color: #666666">1.8.0_45).</span>
+Type in expressions to have them evaluated<span style="color: #666666">.</span>
+Type <span style="color: #666666">:</span>help <span style="color: #008000; font-weight: bold">for</span> more information<span style="color: #666666">.</span>
 
-scala&gt; val helo = "hello-world"
-helo: String = hello-world
+scala<span style="color: #666666">&gt;</span> val helo <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;hello-world&quot;</span>
+<span style="color: #A0A000">helo:</span> String <span style="color: #666666">=</span> hello<span style="color: #666666">-</span>world
 
-scala&gt; print(helo)
-hello-world
-scala&gt; :q</code></pre>
+scala<span style="color: #666666">&gt;</span> <span style="color: #0000FF">print</span><span style="color: #666666">(</span>helo<span style="color: #666666">)</span>
+hello<span style="color: #666666">-</span>world
+scala<span style="color: #666666">&gt;</span> <span style="color: #666666">:</span>q</code></pre>
 </div>
 </div>
 </div>
@@ -946,27 +951,48 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyse
 <div class="listingblock">
 <div class="title">scala.Option#apply</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">object Option {
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</div></td><td class="code"><span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">Option</span> <span style="color: #666666">{</span>
 
-  import scala.language.implicitConversions
+  <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scala.language.implicitConversions</span>
 
-  /** An implicit conversion that converts an option to an iterable value
-   */
-  implicit def option2Iterable[A](xo: Option[A]): Iterable[A] = xo.toList
+  <span style="color: #408080; font-style: italic">/** An implicit conversion that converts an option to an iterable value</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">def</span> option2Iterable<span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">](</span>xo<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Iterable</span><span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> xo<span style="color: #666666">.</span>toList
 
-  /** An Option factory which creates Some(x) if the argument is not null,
-   *  and None if it is null.
-   *
-   *  @param  x the value
-   *  @return   Some(value) if value != null, None if value == null
-   */
-  def apply[A](x: A): Option[A] = if (x == null) None else Some(x)
+  <span style="color: #408080; font-style: italic">/** An Option factory which creates Some(x) if the argument is not null,</span>
+<span style="color: #408080; font-style: italic">   *  and None if it is null.</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   *  @param  x the value</span>
+<span style="color: #408080; font-style: italic">   *  @return   Some(value) if value != null, None if value == null</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> apply<span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">](</span>x<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">A</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>x <span style="color: #666666">==</span> <span style="color: #008000; font-weight: bold">null</span><span style="color: #666666">)</span> <span style="color: #0000FF; font-weight: bold">None</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span>x<span style="color: #666666">)</span>
 
-  /** An Option factory which returns `None` in a manner consistent with
-   *  the collections hierarchy.
-   */
-  def empty[A] : Option[A] = None
-}</code></pre>
+  <span style="color: #408080; font-style: italic">/** An Option factory which returns `None` in a manner consistent with</span>
+<span style="color: #408080; font-style: italic">   *  the collections hierarchy.</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> empty<span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">A</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">None</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -985,8 +1011,8 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyse
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("this is option type.")
-opt: Option[String] = Some(this is option type.)</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;this is option type.&quot;</span><span style="color: #666666">)</span>
+opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">String</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span> is option type<span style="color: #666666">.)</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1020,19 +1046,32 @@ opt: Option[String] = Some(this is option type.)</code></pre>
 <div class="listingblock">
 <div class="title">scala.Option#get</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns the option's value.
- *  @note The option must be nonEmpty.
- *  @throws Predef.NoSuchElementException if the option is empty.
- */
-def get: A
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Returns the option&#39;s value.</span>
+<span style="color: #408080; font-style: italic"> *  @note The option must be nonEmpty.</span>
+<span style="color: #408080; font-style: italic"> *  @throws Predef.NoSuchElementException if the option is empty.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> get<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">A</span>
 
-/** Returns the option's value if the option is nonempty, otherwise
- * return the result of evaluating `default`.
- *
- *  @param default  the default expression.
- */
-@inline final def getOrElse[B &gt;: A](default: =&gt; B): B =
-  if (isEmpty) default else this.get</code></pre>
+<span style="color: #408080; font-style: italic">/** Returns the option&#39;s value if the option is nonempty, otherwise</span>
+<span style="color: #408080; font-style: italic"> * return the result of evaluating `default`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @param default  the default expression.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #AA22FF">@inline</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> getOrElse<span style="color: #666666">[</span><span style="color: #B00040">B</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">A</span><span style="color: #666666">](</span>default<span style="color: #008000; font-weight: bold">:</span> <span style="color: #666666">=&gt;</span> B<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">B</span> <span style="color: #666666">=</span>
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>isEmpty<span style="color: #666666">)</span> default <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -1065,44 +1104,82 @@ def get: A
 <div class="listingblock">
 <div class="title">scala.Option#map</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns a $some containing the result of applying $f to this $option's
- * value if this $option is nonempty.
- * Otherwise return $none.
- *
- *  @note This is similar to `flatMap` except here,
- *  $f does not need to wrap its result in an $option.
- *
- *  @param  f   the function to apply
- *  @see flatMap
- *  @see foreach
- */
-@inline final def map[B](f: A =&gt; B): Option[B] =
-  if (isEmpty) None else Some(f(this.get))
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Returns a $some containing the result of applying $f to this $option&#39;s</span>
+<span style="color: #408080; font-style: italic"> * value if this $option is nonempty.</span>
+<span style="color: #408080; font-style: italic"> * Otherwise return $none.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @note This is similar to `flatMap` except here,</span>
+<span style="color: #408080; font-style: italic"> *  $f does not need to wrap its result in an $option.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @param  f   the function to apply</span>
+<span style="color: #408080; font-style: italic"> *  @see flatMap</span>
+<span style="color: #408080; font-style: italic"> *  @see foreach</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #AA22FF">@inline</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> map<span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">A</span> <span style="color: #666666">=&gt;</span> B<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>isEmpty<span style="color: #666666">)</span> <span style="color: #0000FF; font-weight: bold">None</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span>f<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get<span style="color: #666666">))</span>
 
-/** Returns the result of applying $f to this $option's
- *  value if the $option is nonempty.  Otherwise, evaluates
- *  expression `ifEmpty`.
- *
- *  @note This is equivalent to `$option map f getOrElse ifEmpty`.
- *
- *  @param  ifEmpty the expression to evaluate if empty.
- *  @param  f       the function to apply if nonempty.
- */
-@inline final def fold[B](ifEmpty: =&gt; B)(f: A =&gt; B): B =
-  if (isEmpty) ifEmpty else f(this.get)
+<span style="color: #408080; font-style: italic">/** Returns the result of applying $f to this $option&#39;s</span>
+<span style="color: #408080; font-style: italic"> *  value if the $option is nonempty.  Otherwise, evaluates</span>
+<span style="color: #408080; font-style: italic"> *  expression `ifEmpty`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @note This is equivalent to `$option map f getOrElse ifEmpty`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @param  ifEmpty the expression to evaluate if empty.</span>
+<span style="color: #408080; font-style: italic"> *  @param  f       the function to apply if nonempty.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #AA22FF">@inline</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> fold<span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">](</span>ifEmpty<span style="color: #008000; font-weight: bold">:</span> <span style="color: #666666">=&gt;</span> B<span style="color: #666666">)(</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">A</span> <span style="color: #666666">=&gt;</span> B<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">B</span> <span style="color: #666666">=</span>
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>isEmpty<span style="color: #666666">)</span> ifEmpty <span style="color: #008000; font-weight: bold">else</span> f<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get<span style="color: #666666">)</span>
 
-/** Returns the result of applying $f to this $option's value if
- * this $option is nonempty.
- * Returns $none if this $option is empty.
- * Slightly different from `map` in that $f is expected to
- * return an $option (which could be $none).
- *
- *  @param  f   the function to apply
- *  @see map
- *  @see foreach
- */
-@inline final def flatMap[B](f: A =&gt; Option[B]): Option[B] =
-  if (isEmpty) None else f(this.get)</code></pre>
+<span style="color: #408080; font-style: italic">/** Returns the result of applying $f to this $option&#39;s value if</span>
+<span style="color: #408080; font-style: italic"> * this $option is nonempty.</span>
+<span style="color: #408080; font-style: italic"> * Returns $none if this $option is empty.</span>
+<span style="color: #408080; font-style: italic"> * Slightly different from `map` in that $f is expected to</span>
+<span style="color: #408080; font-style: italic"> * return an $option (which could be $none).</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @param  f   the function to apply</span>
+<span style="color: #408080; font-style: italic"> *  @see map</span>
+<span style="color: #408080; font-style: italic"> *  @see foreach</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #AA22FF">@inline</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> flatMap<span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">A</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>isEmpty<span style="color: #666666">)</span> <span style="color: #0000FF; font-weight: bold">None</span> <span style="color: #008000; font-weight: bold">else</span> f<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get<span style="color: #666666">)</span>
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -1114,8 +1191,8 @@ def get: A
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
-val b = opt.map(a =&gt; Seq(a))</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
+<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>map<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">))</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1130,8 +1207,8 @@ val b = opt.map(a =&gt; Seq(a))</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
-val b = opt.flatMap(a =&gt; Seq(a))</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
+<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>flatMap<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">))</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1141,8 +1218,8 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
-val b = opt.flatMap(a =&gt; Some(Seq(a)))</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
+<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>flatMap<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">)))</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1167,8 +1244,8 @@ val b = opt.flatMap(a =&gt; Some(Seq(a)))</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("helo")
-val b = opt.fold(Some(Seq("none")))(a =&gt; Some(Seq(a)))</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
+<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>fold<span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;none&quot;</span><span style="color: #666666">)))(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">)))</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1190,18 +1267,30 @@ val b = opt.fold(Some(Seq("none")))(a =&gt; Some(Seq(a)))</code></pre>
 <div class="listingblock">
 <div class="title">scala.Option#collect</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">/** Returns a $some containing the result of
- * applying `pf` to this $option's contained
- * value, '''if''' this option is
- * nonempty '''and''' `pf` is defined for that value.
- * Returns $none otherwise.
- *
- *  @param  pf   the partial function.
- *  @return the result of applying `pf` to this $option's
- *  value (if possible), or $none.
- */
-@inline final def collect[B](pf: PartialFunction[A, B]): Option[B] =
-  if (!isEmpty &amp;&amp; pf.isDefinedAt(this.get)) Some(pf(this.get)) else None</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Returns a $some containing the result of</span>
+<span style="color: #408080; font-style: italic"> * applying `pf` to this $option&#39;s contained</span>
+<span style="color: #408080; font-style: italic"> * value, &#39;&#39;&#39;if&#39;&#39;&#39; this option is</span>
+<span style="color: #408080; font-style: italic"> * nonempty &#39;&#39;&#39;and&#39;&#39;&#39; `pf` is defined for that value.</span>
+<span style="color: #408080; font-style: italic"> * Returns $none otherwise.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  @param  pf   the partial function.</span>
+<span style="color: #408080; font-style: italic"> *  @return the result of applying `pf` to this $option&#39;s</span>
+<span style="color: #408080; font-style: italic"> *  value (if possible), or $none.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #AA22FF">@inline</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> collect<span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">A</span>, <span style="color: #B00040">B</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">B</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(!</span>isEmpty <span style="color: #666666">&amp;&amp;</span> pf<span style="color: #666666">.</span>isDefinedAt<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get<span style="color: #666666">))</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span>pf<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>get<span style="color: #666666">))</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #0000FF; font-weight: bold">None</span>
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -1227,9 +1316,9 @@ val b = opt.fold(Some(Seq("none")))(a =&gt; Some(Seq(a)))</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">val opt = Option("partial")
-val pf: PartialFunction[String,String] = {case "partial" =&gt; "bingo!"}
-val b = opt.collect(pf)</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;partial&quot;</span><span style="color: #666666">)</span>
+<span style="color: #008000; font-weight: bold">val</span> pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">String</span>,<span style="color: #B00040">String</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span><span style="color: #008000; font-weight: bold">case</span> <span style="color: #BA2121">&quot;partial&quot;</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #BA2121">&quot;bingo!&quot;</span><span style="color: #666666">}</span>
+<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>collect<span style="color: #666666">(</span>pf<span style="color: #666666">)</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1258,10 +1347,14 @@ val b = opt.collect(pf)</code></pre>
 <div class="listingblock">
 <div class="title">Option.scala</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">case object None extends Option[Nothing] {
-  def isEmpty = true
-  def get = throw new NoSuchElementException("None.get")
-}</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1
+2
+3
+4</div></td><td class="code"><span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">None</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">[</span><span style="color: #B00040">Nothing</span><span style="color: #666666">]</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">def</span> isEmpty <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">true</span>
+  <span style="color: #008000; font-weight: bold">def</span> get <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">NoSuchElementException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;None.get&quot;</span><span style="color: #666666">)</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -1294,18 +1387,30 @@ val b = opt.collect(pf)</code></pre>
 <div class="listingblock">
 <div class="title">List.scala</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java" data-lang="java">case object Nil extends List[Nothing] {
-  override def isEmpty = true
-  override def head: Nothing =
-    throw new NoSuchElementException("head of empty list")
-  override def tail: List[Nothing] =
-    throw new UnsupportedOperationException("tail of empty list")
-  // Removal of equals method here might lead to an infinite recursion similar to IntMap.equals.
-  override def equals(that: Any) = that match {
-    case that1: scala.collection.GenSeq[_] =&gt; that1.isEmpty
-    case _ =&gt; false
-  }
-}</code></pre>
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</div></td><td class="code"><span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">Nil</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">List</span><span style="color: #666666">[</span><span style="color: #B00040">Nothing</span><span style="color: #666666">]</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">override</span> <span style="color: #008000; font-weight: bold">def</span> isEmpty <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">true</span>
+  <span style="color: #008000; font-weight: bold">override</span> <span style="color: #008000; font-weight: bold">def</span> head<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Nothing</span> <span style="color: #666666">=</span>
+    <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">NoSuchElementException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;head of empty list&quot;</span><span style="color: #666666">)</span>
+  <span style="color: #008000; font-weight: bold">override</span> <span style="color: #008000; font-weight: bold">def</span> tail<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">List</span><span style="color: #666666">[</span><span style="color: #B00040">Nothing</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+    <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">UnsupportedOperationException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;tail of empty list&quot;</span><span style="color: #666666">)</span>
+  <span style="color: #408080; font-style: italic">// Removal of equals method here might lead to an infinite recursion similar to IntMap.equals.</span>
+  <span style="color: #008000; font-weight: bold">override</span> <span style="color: #008000; font-weight: bold">def</span> equals<span style="color: #666666">(</span>that<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=</span> that <span style="color: #008000; font-weight: bold">match</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> that1<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">scala.collection.GenSeq</span><span style="color: #666666">[</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> that1<span style="color: #666666">.</span>isEmpty
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">_</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">false</span>
+  <span style="color: #666666">}</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -1318,7 +1423,7 @@ val b = opt.collect(pf)</code></pre>
 <p>nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。</p>
 </li>
 <li>
-<p>ただし、Javaのライブラリを使用している場合は普通にScalaでも <code>NullPointerException</code> は発生する。</p>
+<p>ただし、scalaのライブラリを使用している場合は普通にScalaでも <code>NullPointerException</code> は発生する。</p>
 </li>
 <li>
 <p>基本的にnullが現れないようなコーディングを心がけたい。</p>
@@ -1350,11 +1455,246 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 </div>
 </div>
 <div class="sect3">
-<h4 id="_future_2">2.2.1. Future</h4>
+<h4 id="_futureとは">2.2.1. Futureとは</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Java言語経験者なら1.5<span class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnote_2" title="View footnote.">2</a>]</span>から導入された <code>java.util.concurrent.Future</code> を想定するかもしれない。</p>
+</li>
+<li>
+<p><code>play.api.libs.ws.WSRequest#execute</code> の戻り値はFuture[WSResponse]である。</p>
+</li>
+<li>
+<p><code>play.libs.Akka</code> アクター と非同期的にやり取りをすると、戻り値がFutureオブジェクトが返ってくる。（公式ドキュメントより）</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="paragraph">
+<p>詳細に調べたいため、早速だがソースをみてみよう。</p>
+</div>
+<div class="listingblock">
+<div class="title">scala.concurrent.Future.scala</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">trait</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">[</span><span style="color: #B00040">+T</span><span style="color: #666666">]</span> <span style="color: #0000FF; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">Awaitable</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Awaitableを継承しているトレイトとして宣言されている。<br>
+Awaitableはreadyとresultメソッドを宣言しているトレイトである。<br>
+onSuccess, onFailureをはじめ map, flatMap, filter, collectなどOptionクラスでみてきたおなじみのメソッドや、<br>
+recoverやzip, mapTo, transformなどの興味深いメソッドが定義されている。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">Future</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>お約束の <code>companion object</code> も同ファイルに宣言されている。こちらにはapplyを含むメソッドが定義されている。<br>
+sequence, find, fold, reduce, traverseなどもコンパニオンオブジェクトに定義されている。<br></p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<ul>
+<li>
+<p>trait Futureからみていく。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">private</span> <span style="color: #008000; font-weight: bold">def</span> internalExecutor <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">InternalCallbackExecutor</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>内部にCallback用のExecutorが定義されている。これはレキシカルスコープ<span class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnote_3" title="View footnote.">3</a>]</span>とのこと。<br>
+object Futureに定義されている。<br>
+実際のプログラムでFutureを扱う際は　<code>import scala.concurrent.ExecutionContext.Implicits.global</code> が必要になる。なので、プログラムからinternalExecutorを意識する必要はない。<br>
+ExecutionContext.Implicits.globalをみておこう。<code>lazy val</code> として宣言されており、必要となったときにインスタンスが生成される。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</div></td><td class="code"><span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">ExecutionContext</span> <span style="color: #666666">{</span>
+  <span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic">   * This is the explicit global ExecutionContext,</span>
+<span style="color: #408080; font-style: italic">   * call this when you want to provide the global ExecutionContext explicitly</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> global<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContextExecutor</span> <span style="color: #666666">=</span> <span style="color: #0000FF; font-weight: bold">Implicits</span><span style="color: #666666">.</span>global
+
+  <span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">Implicits</span> <span style="color: #666666">{</span>
+    <span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic">     * This is the implicit global ExecutionContext,</span>
+<span style="color: #408080; font-style: italic">     * import this when you want to provide the global ExecutionContext implicitly</span>
+<span style="color: #408080; font-style: italic">     */</span>
+    <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">lazy</span> <span style="color: #008000; font-weight: bold">val</span> global<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContextExecutor</span> <span style="color: #666666">=</span> impl<span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">ExecutionContextImpl</span><span style="color: #666666">.</span>fromExecutor<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">null:</span> <span style="color: #B00040">Executor</span><span style="color: #666666">)</span>
+  <span style="color: #666666">}</span>
+  <span style="color: #666666">...</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>最終的にはscala.concurrent.impl.ExecutionContextImplインスタンスを生成している。<br>
+参考までに生成箇所を載せておく。</p>
+</div>
+<div class="listingblock">
+<div class="title">ExecutionContextImpl#createExecutorService</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> createExecutorService<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutorService</span> <span style="color: #666666">=</span> <span style="color: #666666">{</span>
+
+  <span style="color: #008000; font-weight: bold">def</span> getInt<span style="color: #666666">(</span>name<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">String</span><span style="color: #666666">,</span> f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">String</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Int</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Int</span> <span style="color: #666666">=</span>
+      <span style="color: #008000; font-weight: bold">try</span> f<span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">System</span><span style="color: #666666">.</span>getProperty<span style="color: #666666">(</span>name<span style="color: #666666">))</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span> <span style="color: #008000; font-weight: bold">case</span> e<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Exception</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Runtime</span><span style="color: #666666">.</span>getRuntime<span style="color: #666666">.</span>availableProcessors <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">def</span> range<span style="color: #666666">(</span>floor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Int</span><span style="color: #666666">,</span> desired<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Int</span><span style="color: #666666">,</span> ceiling<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Int</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Int</span> <span style="color: #666666">=</span>
+    <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>ceiling <span style="color: #666666">&lt;</span> floor<span style="color: #666666">)</span> range<span style="color: #666666">(</span>ceiling<span style="color: #666666">,</span> desired<span style="color: #666666">,</span> floor<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">else</span> scala<span style="color: #666666">.</span>math<span style="color: #666666">.</span>min<span style="color: #666666">(</span>scala<span style="color: #666666">.</span>math<span style="color: #666666">.</span>max<span style="color: #666666">(</span>desired<span style="color: #666666">,</span> floor<span style="color: #666666">),</span> ceiling<span style="color: #666666">)</span>
+
+  <span style="color: #008000; font-weight: bold">val</span> desiredParallelism <span style="color: #008000; font-weight: bold">=</span> range<span style="color: #666666">(</span>
+    getInt<span style="color: #666666">(</span><span style="color: #BA2121">&quot;scala.concurrent.context.minThreads&quot;</span><span style="color: #666666">,</span> <span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">.</span>toInt<span style="color: #666666">),</span>
+    getInt<span style="color: #666666">(</span><span style="color: #BA2121">&quot;scala.concurrent.context.numThreads&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">null</span> <span style="color: #666666">|</span> <span style="color: #BA2121">&quot;&quot;</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Runtime</span><span style="color: #666666">.</span>getRuntime<span style="color: #666666">.</span>availableProcessors
+      <span style="color: #008000; font-weight: bold">case</span> s <span style="color: #008000; font-weight: bold">if</span> s<span style="color: #666666">.</span>charAt<span style="color: #666666">(0)</span> <span style="color: #666666">==</span> x <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Runtime</span><span style="color: #666666">.</span>getRuntime<span style="color: #666666">.</span>availableProcessors <span style="color: #666666">*</span> s<span style="color: #666666">.</span>substring<span style="color: #666666">(1).</span>toDouble<span style="color: #666666">).</span>ceil<span style="color: #666666">.</span>toInt
+      <span style="color: #008000; font-weight: bold">case</span> other <span style="color: #008000; font-weight: bold">=&gt;</span> other<span style="color: #666666">.</span>toInt
+    <span style="color: #666666">}),</span>
+    getInt<span style="color: #666666">(</span><span style="color: #BA2121">&quot;scala.concurrent.context.maxThreads&quot;</span><span style="color: #666666">,</span> <span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">.</span>toInt<span style="color: #666666">))</span>
+
+  <span style="color: #008000; font-weight: bold">val</span> threadFactory <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">DefaultThreadFactory</span><span style="color: #666666">(</span>daemonic <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">true</span><span style="color: #666666">)</span>
+
+  <span style="color: #008000; font-weight: bold">try</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">ForkJoinPool</span><span style="color: #666666">(</span>
+      desiredParallelism<span style="color: #666666">,</span>
+      threadFactory<span style="color: #666666">,</span>
+      uncaughtExceptionHandler<span style="color: #666666">,</span>
+      <span style="color: #008000; font-weight: bold">true</span><span style="color: #666666">)</span> <span style="color: #408080; font-style: italic">// Async all the way baby</span>
+  <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>t<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span>
+      <span style="color: #0000FF; font-weight: bold">System</span><span style="color: #666666">.</span>err<span style="color: #666666">.</span>println<span style="color: #666666">(</span><span style="color: #BA2121">&quot;Failed to create ForkJoinPool for the default ExecutionContext, falling back to ThreadPoolExecutor&quot;</span><span style="color: #666666">)</span>
+      t<span style="color: #666666">.</span>printStackTrace<span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">System</span><span style="color: #666666">.</span>err<span style="color: #666666">)</span>
+      <span style="color: #008000; font-weight: bold">val</span> exec <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">ThreadPoolExecutor</span><span style="color: #666666">(</span>
+        desiredParallelism<span style="color: #666666">,</span>
+        desiredParallelism<span style="color: #666666">,</span>
+        <span style="color: #666666">5L,</span>
+        <span style="color: #0000FF; font-weight: bold">TimeUnit</span><span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">MINUTES</span><span style="color: #666666">,</span>
+        <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">LinkedBlockingQueue</span><span style="color: #666666">[</span><span style="color: #B00040">Runnable</span><span style="color: #666666">],</span>
+        threadFactory
+      <span style="color: #666666">)</span>
+      exec<span style="color: #666666">.</span>allowCoreThreadTimeOut<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">true</span><span style="color: #666666">)</span>
+      exec
+  <span style="color: #666666">}</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+27行目のコメント「Async all the way baby」のbabyが何を意味するのか、Scalaを勉強するということはどういうことなのか、読者自身が考えて欲しい。
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_onsuccess">2.2.2. onSuccess</h4>
 
 </div>
 <div class="sect3">
-<h4 id="_for内包表記">2.2.2. for内包表記</h4>
+<h4 id="_onfailure">2.2.3. onFailure</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_map_flatmap_collect">2.2.4. map, flatMap, collect</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_recover_recoverwith">2.2.5. recover, recoverWith</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_zip_mapto_transform">2.2.6. zip, mapTo, transform</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_andthen">2.2.7. andThen</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_object_future">2.2.8. object Future</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_for内包表記">2.2.9. for内包表記</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_akka_actor">2.2.10. Akka Actor</h4>
 
 </div>
 </div>
@@ -1389,11 +1729,17 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 <div class="footnote" id="_footnote_1">
 <a href="#_footnoteref_1">1</a>. メソッドの特性を理解した上で適宜使い分けたい。getの使用が適当な箇所もあるはずである。
 </div>
+<div class="footnote" id="_footnote_2">
+<a href="#_footnoteref_2">2</a>. 1.8からはCompletableFutureが導入されている。
+</div>
+<div class="footnote" id="_footnote_3">
+<a href="#_footnoteref_3">3</a>. 静的スコープとも呼ぶ。定義した時点でスコープが確定する。
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-23 15:11:56 JST
+Last updated 2015-09-23 19:48:41 JST
 </div>
 </div>
 </body>

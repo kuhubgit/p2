@@ -2,22 +2,19 @@
 forrestinc
 :author:      since 2015
 :authorinitials: forrestinc
-:keywords:    Scala,Play2,SpringBoot,Intellij,Docker,圏論,AsciiDoctor,Electron,React
+:keywords: Scala,Play2,IntellijIDEA,圏論,AsciiDoctor
 :description: 2015/09-2016/03
-:revnumber:   1.0
-:homepage:
-:source:
-:lang:        ja
-:icons:       font
-:docinfo1:
+:revnumber: 1.0
+:homepage: http://kuhubgit.github.io/p2/
+:lang: ja
+:icons: font
 :toc: left
 :toclevels: 3
 :toc-title: 目次
 :linkattrs:
 :experimental:
-:source-highlighter: highlightjs
-:coderay-css: style
-
+:source-highlighter: pygments
+:pygments-css: style
 
 *_目的_*
 [%hardbreaks]

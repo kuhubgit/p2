@@ -16,7 +16,7 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、kbd:[Ctrl+N] (OSX�
 - applyメソッドはOptionコンパニオンオブジェクトに定義されている。
 
 .scala.Option#apply
-[source, java]
+[source, scala, linenums]
 ----
 object Option {
 
@@ -46,7 +46,7 @@ object Option {
 [square]
 - Optionの生成
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("this is option type.")
 opt: Option[String] = Some(this is option type.)
@@ -62,7 +62,7 @@ NOTE: コンパニオンオブジェクトやapplyメソッドや抽出子(unapp
 - ただし、Optionの他メソッド内では値を取得するために使用されているメソッドである。
 
 .scala.Option#get
-[source, java]
+[source, scala, linenums]
 ----
 /** Returns the option's value.
  *  @note The option must be nonEmpty.
@@ -90,7 +90,7 @@ def get: A
 - 関数型言語で頻出のこれらのメソッドを簡単に押さえておきたい。これらのメソッドシグネチャを理解し、関数的な思考センスを磨きたいところである。
 
 .scala.Option#map
-[source, java]
+[source, scala, linenums]
 ----
 /** Returns a $some containing the result of applying $f to this $option's
  * value if this $option is nonempty.
@@ -133,7 +133,7 @@ def get: A
 ----
 * map
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.map(a => Seq(a))
@@ -142,7 +142,7 @@ bは実際にSome(List(helo))のようなオブジェクトになる。
 
 * flatMap
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.flatMap(a => Seq(a))
@@ -152,7 +152,7 @@ val b = opt.flatMap(a => Seq(a))
 flatMapの引数は `(f: A => Option[B])` になっており、マッピング先の型はOption型でなければならない。
 以下のような形であればコンパイルできる。
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.flatMap(a => Some(Seq(a)))
@@ -164,7 +164,7 @@ bは実際にSome(List(helo))のようなオブジェクトになる。
 
 * fold
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.fold(Some(Seq("none")))(a => Some(Seq(a)))
@@ -177,7 +177,7 @@ isEmptyがtrue(Noneの場合)は第一引数の関数（左側の関数）が実
 - では実際にソースをみていく。
 
 .scala.Option#collect
-[source, java]
+[source, scala, linenums]
 ----
 /** Returns a $some containing the result of
  * applying `pf` to this $option's contained
@@ -198,7 +198,7 @@ CAUTION: このメソッドは一体何をしてくれるのだろう。
 
 * 使用例を見てみる。
 
-[source, java]
+[source, scala]
 ----
 val opt = Option("partial")
 val pf: PartialFunction[String,String] = {case "partial" => "bingo!"}
@@ -214,7 +214,7 @@ TODO: PartialFunctionの簡単な説明
 - NoneはOption[Nothing]を継承した `case object` である。
 
 .Option.scala
-[source, java]
+[source, scala, linenums]
 ----
 case object None extends Option[Nothing] {
   def isEmpty = true
@@ -230,7 +230,7 @@ case object None extends Option[Nothing] {
 - 空のListである。List[Nothing]を継承した `case object` である。
 
 .List.scala
-[source, java]
+[source, scala, linenums]
 ----
 case object Nil extends List[Nothing] {
   override def isEmpty = true
@@ -248,7 +248,7 @@ case object Nil extends List[Nothing] {
 
 * null
 - nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。
-- ただし、Javaのライブラリを使用している場合は普通にScalaでも `NullPointerException` は発生する。
+- ただし、scalaのライブラリを使用している場合は普通にScalaでも `NullPointerException` は発生する。
 - 基本的にnullが現れないようなコーディングを心がけたい。
 
 === Either

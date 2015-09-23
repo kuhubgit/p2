@@ -6,7 +6,124 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 また、合わせてfor内包表記についてもまとめる。
 ****
 
+=== Futureとは
+- Java言語経験者なら1.5footnote:[1.8からはCompletableFutureが導入されている。]から導入された `java.util.concurrent.Future` を想定するかもしれない。
+- `play.api.libs.ws.WSRequest#execute` の戻り値はFuture[WSResponse]である。
+- `play.libs.Akka` アクター と非同期的にやり取りをすると、戻り値がFutureオブジェクトが返ってくる。（公式ドキュメントより）
 
-=== Future
+'''
+詳細に調べたいため、早速だがソースをみてみよう。
+
+.scala.concurrent.Future.scala
+[source, scala]
+----
+trait Future[+T] extends Awaitable[T]
+----
+- Awaitableを継承しているトレイトとして宣言されている。 +
+  Awaitableはreadyとresultメソッドを宣言しているトレイトである。 +
+  onSuccess, onFailureをはじめ map, flatMap, filter, collectなどOptionクラスでみてきたおなじみのメソッドや、 +
+  recoverやzip, mapTo, transformなどの興味深いメソッドが定義されている。
+
+[source, scala]
+----
+object Future
+----
+- お約束の `companion object` も同ファイルに宣言されている。こちらにはapplyを含むメソッドが定義されている。 +
+  sequence, find, fold, reduce, traverseなどもコンパニオンオブジェクトに定義されている。 +
+
+'''
+- trait Futureからみていく。
+
+[source, scala]
+----
+private def internalExecutor = Future.InternalCallbackExecutor
+----
+- 内部にCallback用のExecutorが定義されている。これはレキシカルスコープfootnote:[静的スコープとも呼ぶ。定義した時点でスコープが確定する。]とのこと。 +
+  object Futureに定義されている。 +
+  実際のプログラムでFutureを扱う際は　`import scala.concurrent.ExecutionContext.Implicits.global` が必要になる。なので、プログラムからinternalExecutorを意識する必要はない。 +
+  ExecutionContext.Implicits.globalをみておこう。`lazy val` として宣言されており、必要となったときにインスタンスが生成される。
+
+[source, scala, linenums]
+----
+object ExecutionContext {
+  /**
+   * This is the explicit global ExecutionContext,
+   * call this when you want to provide the global ExecutionContext explicitly
+   */
+  def global: ExecutionContextExecutor = Implicits.global
+
+  object Implicits {
+    /**
+     * This is the implicit global ExecutionContext,
+     * import this when you want to provide the global ExecutionContext implicitly
+     */
+    implicit lazy val global: ExecutionContextExecutor = impl.ExecutionContextImpl.fromExecutor(null: Executor)
+  }
+  ...
+----
+最終的にはscala.concurrent.impl.ExecutionContextImplインスタンスを生成している。 +
+参考までに生成箇所を載せておく。
+
+.ExecutionContextImpl#createExecutorService
+[source, scala, linenums]
+----
+def createExecutorService: ExecutorService = {
+
+  def getInt(name: String, f: String => Int): Int =
+      try f(System.getProperty(name)) catch { case e: Exception => Runtime.getRuntime.availableProcessors }
+  def range(floor: Int, desired: Int, ceiling: Int): Int =
+    if (ceiling < floor) range(ceiling, desired, floor) else scala.math.min(scala.math.max(desired, floor), ceiling)
+
+  val desiredParallelism = range(
+    getInt("scala.concurrent.context.minThreads", _.toInt),
+    getInt("scala.concurrent.context.numThreads", {
+      case null | "" => Runtime.getRuntime.availableProcessors
+      case s if s.charAt(0) == x => (Runtime.getRuntime.availableProcessors * s.substring(1).toDouble).ceil.toInt
+      case other => other.toInt
+    }),
+    getInt("scala.concurrent.context.maxThreads", _.toInt))
+
+  val threadFactory = new DefaultThreadFactory(daemonic = true)
+
+  try {
+    new ForkJoinPool(
+      desiredParallelism,
+      threadFactory,
+      uncaughtExceptionHandler,
+      true) // Async all the way baby
+  } catch {
+    case NonFatal(t) =>
+      System.err.println("Failed to create ForkJoinPool for the default ExecutionContext, falling back to ThreadPoolExecutor")
+      t.printStackTrace(System.err)
+      val exec = new ThreadPoolExecutor(
+        desiredParallelism,
+        desiredParallelism,
+        5L,
+        TimeUnit.MINUTES,
+        new LinkedBlockingQueue[Runnable],
+        threadFactory
+      )
+      exec.allowCoreThreadTimeOut(true)
+      exec
+  }
+}
+----
+CAUTION: 27行目のコメント「Async all the way baby」のbabyが何を意味するのか、Scalaを勉強するということはどういうことなのか、読者自身が考えて欲しい。
+
+=== onSuccess
+
+=== onFailure
+
+=== map, flatMap, collect
+
+=== recover, recoverWith
+
+=== zip, mapTo, transform
+
+=== andThen
+
+=== object Future
 
 === for内包表記
+
+=== Akka Actor
