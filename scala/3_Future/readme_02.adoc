@@ -1,0 +1,180 @@
+=== map, flatMap, collect
+- `Future` を作成し、それをいろいろな構文で値を取り出してみる。
+
+----
+scala> val f1 = Future { "Hello" + "World" }
+f1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@79ad8b2f
+
+scala> val f2 = f1 map { x => x.length }
+f2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@54d9d12d
+
+scala> val result = Await.result(f2, Duration.Inf)
+result: Int = 10
+----
+mapを使って、 `Future` の値[String型]（HelloWorld)の長さを取り出した。
+
+----
+// f1 はそのまま使用することとする。
+scala> val rate = Future { 3.00 }
+rate: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@1bab8268
+
+scala> val f3 = f1 flatMap { x => rate map { y => x.length * y }}
+f3: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@600b90df
+
+scala> val result = Await.result(f3, Duration.Inf)
+result: Double = 30.0
+----
+flatMapを使って、 `Future` を合成した値を取り出した。 +
+上の例のflatMapの部分をmapを使ってみるとどうなるだろう。
+
+----
+scala> val f3 = f1 map { x => rate map { y => x.length * y }}
+f3: scala.concurrent.Future[scala.concurrent.Future[Double]] = scala.concurrent.impl.Promise$DefaultPromise@74a6a609
+
+scala> val result = Await.result(f3, Duration.Inf)
+result: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@60a2630a
+
+scala> val result2 = Await.result(result, Duration.Inf)
+result2: Double = 30.0
+----
+flatMapを使った例では f3 は　`Future[Double]` 型 であるのに対し、mapで置き換えてみると `Future[Future[Double]]` 型になっている。
+
+.Future#map
+
+[source, scala, linenums]
+----
+def map[S](f: T => S)(implicit executor: ExecutionContext): Future[S] = { // transform(f, identity)
+  val p = Promise[S]()
+  onComplete { v => p complete (v map f) }
+  p.future
+}
+----
+
+.Future#flatMap
+
+[source, scala, linenums]
+----
+def flatMap[S](f: T => Future[S])(implicit executor: ExecutionContext): Future[S] = {
+  import impl.Promise.DefaultPromise
+  val p = new DefaultPromise[S]()
+  onComplete {
+    case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
+    case Success(v) => try f(v) match {
+      // If possible, link DefaultPromises to avoid space leaks
+      case dp: DefaultPromise[_] => dp.asInstanceOf[DefaultPromise[S]].linkRootOf(p)
+      case fut => fut.onComplete(p.complete)(internalExecutor)
+    } catch { case NonFatal(t) => p failure t }
+  }
+  p.future
+}
+----
+mapもflatMapも共に戻り型は `Future[S]` だが、flatMapは `Future` を戻り型とする関数を引数にとる。
+上の実行例の違いは引数の違いで現れたことがわかった。footnote:[Option型で現れたmapとflatMapの違いにも同様に引数型の違いがある。] +
+`onComplete` は驚くほど実装がことなる。
+flatMapの実装は難解だが、幸いな事に flatMap 演算は使いやすく、また分かりやすい for 内包表記以外の場合はあまり使われない。
+footnote:[http://docs.scala-lang.org/ja/overviews/core/futures.html]
+
+=== recover, recoverWith
+recover, recoverWithは先ほど説明した `Try` 型で定義されているものと引数型の関係性は同様である。 +
+
+.Future#recover
+
+[source, scala, linenums]
+----
+/** Creates a new future that will handle any matching throwable that this
+ *  future might contain. If there is no match, or if this future contains
+ *  a valid result then the new future will contain the same.
+ *
+ *  Example:
+ *
+ *  {{{
+ *  future (6 / 0) recover { case e: ArithmeticException => 0 } // result: 0
+ *  future (6 / 0) recover { case e: NotFoundException   => 0 } // result: exception
+ *  future (6 / 2) recover { case e: ArithmeticException => 0 } // result: 3
+ *  }}}
+ */
+def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U] = {
+  val p = Promise[U]()
+  onComplete { v => p complete (v recover pf) }
+  p.future
+}
+----
+戻り型は `Future` である。 `onComplete` 内部で使用されている　`recover` は `Try#recover` である。
+
+.Future#recoverWith
+
+[source, scala, linenums]
+----
+/** Creates a new future that will handle any matching throwable that this
+ *  future might contain by assigning it a value of another future.
+ *
+ *  If there is no match, or if this future contains
+ *  a valid result then the new future will contain the same result.
+ *
+ *  Example:
+ *
+ *  {{{
+ *  val f = future { Int.MaxValue }
+ *  future (6 / 0) recoverWith { case e: ArithmeticException => f } // result: Int.MaxValue
+ *  }}}
+ */
+def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])(implicit executor: ExecutionContext): Future[U] = {
+  val p = Promise[U]()
+  onComplete {
+    case Failure(t) => try pf.applyOrElse(t, (_: Throwable) => this).onComplete(p.complete)(internalExecutor) catch { case NonFatal(t) => p failure t }
+    case other => p complete other
+  }
+  p.future
+}
+----
+`onComplete` 内部処理はやや難解ではあるが、コメントにあるExampleのように記述することができると認識できれば、よいだろう。
+
+- 実際にやってみよう。
+
+----
+scala> val f1 = Future { throw new IllegalArgumentException("need recover") }
+f1: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@490ab905
+
+scala> val r1 = f1.recover{ case e: IllegalArgumentException => "fallbacked" }
+r1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@8909f18
+
+scala> val r2 = f1.recoverWith{ case e: IllegalArgumentException => Future.failed(e) }
+r2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@64ec96c6
+
+scala> r2.value
+res2: Option[scala.util.Try[Nothing]] = Some(Failure(java.lang.IllegalArgumentException: need recover))
+
+scala> r2.value.get
+res3: scala.util.Try[Nothing] = Failure(java.lang.IllegalArgumentException: need recover)
+
+scala> r2.value.get.get
+java.lang.IllegalArgumentException: need recover
+  at $anonfun$1.apply(<console>:12)
+  at $anonfun$1.apply(<console>:12)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)
+----
+- recoverWithの戻り型が `Future[Nothing]` となっており、`Future` の値を取得すると `Try[Nothing]` となっているが、
+さらに値を取得すると例外が発生する。 `Nothing` と表現されている辺りscalaっぽさを感じるところである。
+
+=== zip, mapTo, transform
+- まずは使ってみよう。
+
+=== andThen
+[green]_TBD_
+
+=== object Future
+- コンパニオンオブジェクトに定義されているメソッドをみていく。
+
+=== for内包表記いろいろ
+[green]_TBD_
+
+=== Akka Actor
+[green]_TBD_
+
+'''

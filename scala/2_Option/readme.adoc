@@ -13,7 +13,7 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、kbd:[Ctrl+N] (OSX�
 
 === apply
 
-- applyメソッドはOptionコンパニオンオブジェクトに定義されている。
+- applyメソッドは `Option` コンパニオンオブジェクトに定義されている。
 
 .scala.Option#apply
 [source, scala, linenums]
@@ -44,9 +44,8 @@ object Option {
 - applyメソッドはScalaでは特別なメソッドとして解釈される。つまりOptionは以下のように生成できることになる。
 
 [square]
-- Optionの生成
+- `Option` の生成
 
-[source, scala]
 ----
 val opt = Option("this is option type.")
 opt: Option[String] = Some(this is option type.)
@@ -58,8 +57,8 @@ NOTE: コンパニオンオブジェクトやapplyメソッドや抽出子(unapp
 
 === get
 
-- getメソッドはOptionから値を取得する一番簡単なメソッドである。しかし `NoSuchElementException` をthrowするため、安易な使用は推奨されない。footnote:[メソッドの特性を理解した上で適宜使い分けたい。getの使用が適当な箇所もあるはずである。]
-- ただし、Optionの他メソッド内では値を取得するために使用されているメソッドである。
+- getメソッドは `Option` から値を取得する一番簡単なメソッドである。しかし `NoSuchElementException` をthrowするため、安易な使用は推奨されない。footnote:[メソッドの特性を理解した上で適宜使い分けたい。getの使用が適当な箇所もあるはずである。]
+- ただし、`Option` の他メソッド内では値を取得するために使用されているメソッドである。
 
 .scala.Option#get
 [source, scala, linenums]
@@ -78,9 +77,9 @@ def get: A
 @inline final def getOrElse[B >: A](default: => B): B =
   if (isEmpty) default else this.get
 ----
-- getメソッドの戻り値がA型となっており、Option[String]型であればString型が取得できることがわかる。
+- getメソッドの戻り値がA型となっており、`Option[String]` 型であればString型が取得できることがわかる。
 - getOtElseメソッドはisEmptyの実装（後述）によりデフォルト値を返却する場合とgetを呼び出す分岐がある。
-- これらのメソッドはabstract class で定義されており、Some(final case class)とNone(case object)にisEmptyの実装がある。
+- これらのメソッドはabstract class で定義されており、`Some` (final case class)と `None` (case object)にisEmptyの実装がある。
 - 実際の場面ではgetやgetOrElseを直接使うよりもmapやflatMapメソッドを経由して値を取り出すことが多いかもしれない。
 
 '''
@@ -133,38 +132,34 @@ def get: A
 ----
 * map
 
-[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.map(a => Seq(a))
 ----
-bは実際にSome(List(helo))のようなオブジェクトになる。
+bは実際に `Some(List(helo))` のようなオブジェクトになる。
 
 * flatMap
 
-[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.flatMap(a => Seq(a))
 ----
 [%hardbreaks]
 これは [red]_error: type mismatch;_ となりコンパイルできない。なぜか。
-flatMapの引数は `(f: A => Option[B])` になっており、マッピング先の型はOption型でなければならない。
+flatMapの引数は `(f: A => Option[B])` になっており、マッピング先の型は `Option` 型でなければならない。
 以下のような形であればコンパイルできる。
 
-[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.flatMap(a => Some(Seq(a)))
 ----
-bは実際にSome(List(helo))のようなオブジェクトになる。
+bは実際に `Some(List(helo))` のようなオブジェクトになる。
 
 * mapとflatMapの違い
-** `f(this.get)` を呼び出すことは変わりはないが、mapの場合は自身の関数の中でSomeでラップしており、flatMapは引数の関数の戻り値にOption型を要求することで自身の戻り値をOption型としている。
+** `f(this.get)` を呼び出すことは変わりはないが、mapの場合は自身の関数の中でSomeでラップしており、flatMapは引数の関数の戻り値に `Option` 型を要求することで自身の戻り値を `Option` 型としている。
 
 * fold
 
-[source, scala]
 ----
 val opt = Option("helo")
 val b = opt.fold(Some(Seq("none")))(a => Some(Seq(a)))
@@ -174,7 +169,6 @@ isEmptyがtrue(Noneの場合)は第一引数の関数（左側の関数）が実
 === collect
 
 - collectという名称から何かしらの条件にマッチしたものだけを取得できそうなメソッドのような感じを受ける。
-- では実際にソースをみていく。
 
 .scala.Option#collect
 [source, scala, linenums]
@@ -198,20 +192,19 @@ CAUTION: このメソッドは一体何をしてくれるのだろう。
 
 * 使用例を見てみる。
 
-[source, scala]
 ----
 val opt = Option("partial")
 val pf: PartialFunction[String,String] = {case "partial" => "bingo!"}
 val b = opt.collect(pf)
 ----
-bはSome(bingo!)になっている。
+bは `Some(bingo!)` になっている。
 
 TODO: PartialFunctionの簡単な説明
 
 === nullの扱い
 
 * None
-- NoneはOption[Nothing]を継承した `case object` である。
+- `None` は `Option[Nothing]` を継承した `case object` である。
 
 .Option.scala
 [source, scala, linenums]
@@ -227,7 +220,7 @@ case object None extends Option[Nothing] {
 - ここでは深く取り上げないことにする。
 
 * Nil
-- 空のListである。List[Nothing]を継承した `case object` である。
+- 空のListである。`List[Nothing]` を継承した `case object` である。
 
 .List.scala
 [source, scala, linenums]
@@ -247,10 +240,11 @@ case object Nil extends List[Nothing] {
 ----
 
 * null
-- nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。
+- nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するには `None` を使おう。
 - ただし、scalaのライブラリを使用している場合は普通にScalaでも `NullPointerException` は発生する。
 - 基本的にnullが現れないようなコーディングを心がけたい。
 
 === Either
+[green]_TBD_
 
-=== Try
+'''

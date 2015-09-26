@@ -442,21 +442,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_collect">2.1.4. collect</a></li>
 <li><a href="#_nullの扱い">2.1.5. nullの扱い</a></li>
 <li><a href="#_either">2.1.6. Either</a></li>
-<li><a href="#_try">2.1.7. Try</a></li>
 </ul>
 </li>
 <li><a href="#_future">2.2. Future</a>
 <ul class="sectlevel3">
 <li><a href="#_futureとは">2.2.1. Futureとは</a></li>
-<li><a href="#_onsuccess">2.2.2. onSuccess</a></li>
-<li><a href="#_onfailure">2.2.3. onFailure</a></li>
-<li><a href="#_map_flatmap_collect">2.2.4. map, flatMap, collect</a></li>
-<li><a href="#_recover_recoverwith">2.2.5. recover, recoverWith</a></li>
-<li><a href="#_zip_mapto_transform">2.2.6. zip, mapTo, transform</a></li>
-<li><a href="#_andthen">2.2.7. andThen</a></li>
-<li><a href="#_object_future">2.2.8. object Future</a></li>
-<li><a href="#_for内包表記">2.2.9. for内包表記</a></li>
-<li><a href="#_akka_actor">2.2.10. Akka Actor</a></li>
+<li><a href="#_onsuccess_onfailure">2.2.2. onSuccess,onFailure</a></li>
+<li><a href="#_map_flatmap_collect">2.2.3. map, flatMap, collect</a></li>
+<li><a href="#_recover_recoverwith">2.2.4. recover, recoverWith</a></li>
+<li><a href="#_zip_mapto_transform">2.2.5. zip, mapTo, transform</a></li>
+<li><a href="#_andthen">2.2.6. andThen</a></li>
+<li><a href="#_object_future">2.2.7. object Future</a></li>
+<li><a href="#_for内包表記いろいろ">2.2.8. for内包表記いろいろ</a></li>
+<li><a href="#_akka_actor">2.2.9. Akka Actor</a></li>
 </ul>
 </li>
 <li><a href="#_collection">2.3. Collection</a>
@@ -944,7 +942,7 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyse
 <div class="ulist">
 <ul>
 <li>
-<p>applyメソッドはOptionコンパニオンオブジェクトに定義されている。</p>
+<p>applyメソッドは <code>Option</code> コンパニオンオブジェクトに定義されている。</p>
 </li>
 </ul>
 </div>
@@ -1005,14 +1003,14 @@ IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyse
 <div class="ulist square">
 <ul class="square">
 <li>
-<p>Optionの生成</p>
+<p><code>Option</code> の生成</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;this is option type.&quot;</span><span style="color: #666666">)</span>
-opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Option</span><span style="color: #666666">[</span><span style="color: #B00040">String</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">this</span> is option type<span style="color: #666666">.)</span></code></pre>
+<pre>val opt = Option("this is option type.")
+opt: Option[String] = Some(this is option type.)</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1036,10 +1034,10 @@ opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: 
 <div class="ulist">
 <ul>
 <li>
-<p>getメソッドはOptionから値を取得する一番簡単なメソッドである。しかし <code>NoSuchElementException</code> をthrowするため、安易な使用は推奨されない。<span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span></p>
+<p>getメソッドは <code>Option</code> から値を取得する一番簡単なメソッドである。しかし <code>NoSuchElementException</code> をthrowするため、安易な使用は推奨されない。<span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span></p>
 </li>
 <li>
-<p>ただし、Optionの他メソッド内では値を取得するために使用されているメソッドである。</p>
+<p>ただし、<code>Option</code> の他メソッド内では値を取得するために使用されているメソッドである。</p>
 </li>
 </ul>
 </div>
@@ -1077,13 +1075,13 @@ opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: 
 <div class="ulist">
 <ul>
 <li>
-<p>getメソッドの戻り値がA型となっており、Option[String]型であればString型が取得できることがわかる。</p>
+<p>getメソッドの戻り値がA型となっており、<code>Option[String]</code> 型であればString型が取得できることがわかる。</p>
 </li>
 <li>
 <p>getOtElseメソッドはisEmptyの実装（後述）によりデフォルト値を返却する場合とgetを呼び出す分岐がある。</p>
 </li>
 <li>
-<p>これらのメソッドはabstract class で定義されており、Some(final case class)とNone(case object)にisEmptyの実装がある。</p>
+<p>これらのメソッドはabstract class で定義されており、<code>Some</code> (final case class)と <code>None</code> (case object)にisEmptyの実装がある。</p>
 </li>
 <li>
 <p>実際の場面ではgetやgetOrElseを直接使うよりもmapやflatMapメソッドを経由して値を取り出すことが多いかもしれない。</p>
@@ -1191,12 +1189,12 @@ opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
-<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>map<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">))</span></code></pre>
+<pre>val opt = Option("helo")
+val b = opt.map(a =&gt; Seq(a))</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>bは実際にSome(List(helo))のようなオブジェクトになる。</p>
+<p>bは実際に <code>Some(List(helo))</code> のようなオブジェクトになる。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1207,23 +1205,23 @@ opt<span style="color: #008000; font-weight: bold">:</span> <span style="color: 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
-<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>flatMap<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">))</span></code></pre>
+<pre>val opt = Option("helo")
+val b = opt.flatMap(a =&gt; Seq(a))</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>これは <em class="red">error: type mismatch;</em> となりコンパイルできない。なぜか。<br>
-flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、マッピング先の型はOption型でなければならない。<br>
+flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、マッピング先の型は <code>Option</code> 型でなければならない。<br>
 以下のような形であればコンパイルできる。</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
-<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>flatMap<span style="color: #666666">(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">)))</span></code></pre>
+<pre>val opt = Option("helo")
+val b = opt.flatMap(a =&gt; Some(Seq(a)))</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>bは実際にSome(List(helo))のようなオブジェクトになる。</p>
+<p>bは実際に <code>Some(List(helo))</code> のようなオブジェクトになる。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1232,7 +1230,7 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 <div class="ulist">
 <ul>
 <li>
-<p><code>f(this.get)</code> を呼び出すことは変わりはないが、mapの場合は自身の関数の中でSomeでラップしており、flatMapは引数の関数の戻り値にOption型を要求することで自身の戻り値をOption型としている。</p>
+<p><code>f(this.get)</code> を呼び出すことは変わりはないが、mapの場合は自身の関数の中でSomeでラップしており、flatMapは引数の関数の戻り値に <code>Option</code> 型を要求することで自身の戻り値を <code>Option</code> 型としている。</p>
 </li>
 </ul>
 </div>
@@ -1244,8 +1242,8 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;helo&quot;</span><span style="color: #666666">)</span>
-<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>fold<span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;none&quot;</span><span style="color: #666666">)))(</span>a <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Some</span><span style="color: #666666">(</span><span style="color: #0000FF; font-weight: bold">Seq</span><span style="color: #666666">(</span>a<span style="color: #666666">)))</span></code></pre>
+<pre>val opt = Option("helo")
+val b = opt.fold(Some(Seq("none")))(a =&gt; Some(Seq(a)))</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1258,9 +1256,6 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 <ul>
 <li>
 <p>collectという名称から何かしらの条件にマッチしたものだけを取得できそうなメソッドのような感じを受ける。</p>
-</li>
-<li>
-<p>では実際にソースをみていく。</p>
 </li>
 </ul>
 </div>
@@ -1316,13 +1311,13 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">val</span> opt <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Option</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;partial&quot;</span><span style="color: #666666">)</span>
-<span style="color: #008000; font-weight: bold">val</span> pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">String</span>,<span style="color: #B00040">String</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span><span style="color: #008000; font-weight: bold">case</span> <span style="color: #BA2121">&quot;partial&quot;</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #BA2121">&quot;bingo!&quot;</span><span style="color: #666666">}</span>
-<span style="color: #008000; font-weight: bold">val</span> b <span style="color: #008000; font-weight: bold">=</span> opt<span style="color: #666666">.</span>collect<span style="color: #666666">(</span>pf<span style="color: #666666">)</span></code></pre>
+<pre>val opt = Option("partial")
+val pf: PartialFunction[String,String] = {case "partial" =&gt; "bingo!"}
+val b = opt.collect(pf)</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>bはSome(bingo!)になっている。</p>
+<p>bは <code>Some(bingo!)</code> になっている。</p>
 </div>
 <div class="paragraph">
 <p>TODO: PartialFunctionの簡単な説明</p>
@@ -1337,7 +1332,7 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 <div class="ulist">
 <ul>
 <li>
-<p>NoneはOption[Nothing]を継承した <code>case object</code> である。</p>
+<p><code>None</code> は <code>Option[Nothing]</code> を継承した <code>case object</code> である。</p>
 </li>
 </ul>
 </div>
@@ -1377,7 +1372,7 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 <div class="ulist">
 <ul>
 <li>
-<p>空のListである。List[Nothing]を継承した <code>case object</code> である。</p>
+<p>空のListである。<code>List[Nothing]</code> を継承した <code>case object</code> である。</p>
 </li>
 </ul>
 </div>
@@ -1420,7 +1415,7 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 <div class="ulist">
 <ul>
 <li>
-<p>nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するにはNoneを使おう。</p>
+<p>nullはといえば、Scalaにも存在する。ただし使いどころは限定されるようだ。値がないことを表現するには <code>None</code> を使おう。</p>
 </li>
 <li>
 <p>ただし、scalaのライブラリを使用している場合は普通にScalaでも <code>NullPointerException</code> は発生する。</p>
@@ -1436,11 +1431,10 @@ flatMapの引数は <code>(f: A &#8658; Option[B])</code> になっており、�
 </div>
 <div class="sect3">
 <h4 id="_either">2.1.6. Either</h4>
-
+<div class="paragraph">
+<p><em class="green">TBD</em></p>
 </div>
-<div class="sect3">
-<h4 id="_try">2.1.7. Try</h4>
-
+<hr>
 </div>
 </div>
 <div class="sect2">
@@ -1462,10 +1456,13 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 <p>Java言語経験者なら1.5<span class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnote_2" title="View footnote.">2</a>]</span>から導入された <code>java.util.concurrent.Future</code> を想定するかもしれない。</p>
 </li>
 <li>
-<p><code>play.api.libs.ws.WSRequest#execute</code> の戻り値はFuture[WSResponse]である。</p>
+<p><code>play.api.libs.ws.WSRequest#execute</code> の戻り値は <code>Future[WSResponse]</code> である。</p>
 </li>
 <li>
 <p><code>play.libs.Akka</code> アクター と非同期的にやり取りをすると、戻り値がFutureオブジェクトが返ってくる。（公式ドキュメントより）</p>
+</li>
+<li>
+<p><code>Future</code> は未来と訳すことができるため、現時点では <code>Future</code> とは未来（に行われる処理）を記述することと定義しておく。</p>
 </li>
 </ul>
 </div>
@@ -1482,9 +1479,9 @@ Futureは非同期処理で頻出する型なので、ぜひとも習得して�
 <div class="ulist">
 <ul>
 <li>
-<p>Awaitableを継承しているトレイトとして宣言されている。<br>
-Awaitableはreadyとresultメソッドを宣言しているトレイトである。<br>
-onSuccess, onFailureをはじめ map, flatMap, filter, collectなどOptionクラスでみてきたおなじみのメソッドや、<br>
+<p><code>Awaitable</code> を継承しているトレイトとして宣言されている。<br>
+<code>Awaitable</code> はreadyとresultメソッドを宣言しているトレイトである。<br>
+onSuccess, onFailureをはじめ map, flatMap, filter, collectなど <code>Option</code> クラスでみてきたおなじみのメソッドや、<br>
 recoverやzip, mapTo, transformなどの興味深いメソッドが定義されている。</p>
 </li>
 </ul>
@@ -1519,7 +1516,6 @@ sequence, find, fold, reduce, traverseなどもコンパニオンオブジェク
 <ul>
 <li>
 <p>内部にCallback用のExecutorが定義されている。これはレキシカルスコープ<span class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnote_3" title="View footnote.">3</a>]</span>とのこと。<br>
-object Futureに定義されている。<br>
 実際のプログラムでFutureを扱う際は　<code>import scala.concurrent.ExecutionContext.Implicits.global</code> が必要になる。なので、プログラムからinternalExecutorを意識する必要はない。<br>
 ExecutionContext.Implicits.globalをみておこう。<code>lazy val</code> として宣言されており、必要となったときにインスタンスが生成される。</p>
 </li>
@@ -1560,7 +1556,7 @@ ExecutionContext.Implicits.globalをみておこう。<code>lazy val</code> と�
 </div>
 </div>
 <div class="paragraph">
-<p>最終的にはscala.concurrent.impl.ExecutionContextImplインスタンスを生成している。<br>
+<p>最終的には ExecutionContextImpl.fromExecutorにより <code>scala.concurrent.impl.ExecutionContextImpl</code> インスタンスを生成している。<br>
 参考までに生成箇所を載せておく。</p>
 </div>
 <div class="listingblock">
@@ -1655,47 +1651,595 @@ ExecutionContext.Implicits.globalをみておこう。<code>lazy val</code> と�
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-27行目のコメント「Async all the way baby」のbabyが何を意味するのか、Scalaを勉強するということはどういうことなのか、読者自身が考えて欲しい。
+ExecutorServiceやForkJoinPoolなどJavaでおなじみのインターフェースやクラスで実装されていることがわかる。
 </td>
 </tr>
 </table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_onsuccess">2.2.2. onSuccess</h4>
+<h4 id="_onsuccess_onfailure">2.2.2. onSuccess,onFailure</h4>
+<div class="listingblock">
+<div class="title">Future#onSuccess</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1
+2
+3
+4
+5</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> onSuccess<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">T</span>, <span style="color: #B00040">U</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span> <span style="color: #666666">=</span> onComplete <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span>v<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span>
+    pf<span style="color: #666666">.</span>applyOrElse<span style="color: #666666">[</span><span style="color: #B00040">T</span>, <span style="color: #B00040">Any</span><span style="color: #666666">](</span>v<span style="color: #666666">,</span> <span style="color: #0000FF; font-weight: bold">Predef</span><span style="color: #666666">.</span>conforms<span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">])</span> <span style="color: #408080; font-style: italic">// Exploiting the cached function to avoid MatchError</span>
+  <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">_</span> <span style="color: #008000; font-weight: bold">=&gt;</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>引数をみると、PartialFunctionと <code>ExecutionContext</code> が定義されているが、<code>ExecutionContext</code> のほうは <code>implicit</code> である。<br>
+すなわち先ほど述べたExecutionContext.Implicits.globalのimportが必要になる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>onComplete</code> を呼び出しており、戻り型は <code>Unit</code> である。<br>
+<code>scala.util.Success</code> の場合のみ処理を行うFunctionを引数にとっている。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Future#onComplete</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> onComplete<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>func<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> U<span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>onComplete</code> の定義をみてみると <code>(func: Try[T] &#8658; U)</code> を引数にとることがわかる。</p>
+</div>
+<div class="listingblock">
+<div class="title">Future#onFailure</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1
+2
+3
+4
+5</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> onFailure<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>callback<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">U</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span> <span style="color: #666666">=</span> onComplete <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>t<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span>
+    callback<span style="color: #666666">.</span>applyOrElse<span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">Any</span><span style="color: #666666">](</span>t<span style="color: #666666">,</span> <span style="color: #0000FF; font-weight: bold">Predef</span><span style="color: #666666">.</span>conforms<span style="color: #666666">[</span><span style="color: #B00040">Throwable</span><span style="color: #666666">])</span> <span style="color: #408080; font-style: italic">// Exploiting the cached function to avoid MatchError</span>
+  <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">_</span> <span style="color: #008000; font-weight: bold">=&gt;</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>onFailure</code> の引数シグネチャは <code>onSuccess</code> と比べると幾つか違いがある。<br>
+PartialFunctionの型がThrowableとなっていること。PartialFunctionの名前がcallbackになっていること。<br>
+<code>scala.util.Failure</code> の場合のみ処理を行う。</p>
+</div>
+<hr>
+<div class="ulist">
+<ul>
+<li>
+<p>少し寄り道をして <code>scala.util.Success</code> , <code>scala.util.Failure</code> についてみていきたい。<br>
+<code>Success</code> および　<code>Failure</code> は <code>scala.util.Try.scala</code> で定義されている。
+.scala.util.Try</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</div></td><td class="code"><span style="color: #008000; font-weight: bold">object</span> <span style="color: #0000FF; font-weight: bold">Try</span> <span style="color: #666666">{</span>
+  <span style="color: #408080; font-style: italic">/** Constructs a `Try` using the by-name parameter.  This</span>
+<span style="color: #408080; font-style: italic">   * method will ensure any non-fatal exception is caught and a</span>
+<span style="color: #408080; font-style: italic">   * `Failure` object is returned.</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> apply<span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">](</span>r<span style="color: #008000; font-weight: bold">:</span> <span style="color: #666666">=&gt;</span> T<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+    <span style="color: #008000; font-weight: bold">try</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span>r<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span>
 
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Try型のコンパニオンオブジェクトは上記のように定義されている。try-catch構文である。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1</div></td><td class="code"><span style="color: #008000; font-weight: bold">sealed</span> <span style="color: #008000; font-weight: bold">abstract</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">+T</span><span style="color: #666666">]</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>class定義は <code>sealed</code> されているため、Try.scala内でのみ継承が許されている。実際 <code>final case class</code> として <code>Success</code> と <code>Failure</code> のみ定義されている。<br></p>
+</div>
+<div class="listingblock">
+<div class="title">scala.util.Success</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</div></td><td class="code"><span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">[</span><span style="color: #B00040">+T</span><span style="color: #666666">](</span>value<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">def</span> isFailure<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Boolean</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">false</span>
+  <span style="color: #008000; font-weight: bold">def</span> isSuccess<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Boolean</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">true</span>
+  <span style="color: #008000; font-weight: bold">def</span> recoverWith<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span>
+  <span style="color: #008000; font-weight: bold">def</span> get <span style="color: #008000; font-weight: bold">=</span> value
+  <span style="color: #008000; font-weight: bold">def</span> flatMap<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+    <span style="color: #008000; font-weight: bold">try</span> f<span style="color: #666666">(</span>value<span style="color: #666666">)</span>
+    <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">def</span> flatten<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">implicit</span> ev<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #008000; font-weight: bold">&lt;:</span><span style="color: #B00040">&lt;</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> value
+  <span style="color: #008000; font-weight: bold">def</span> foreach<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> U<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span> <span style="color: #666666">=</span> f<span style="color: #666666">(</span>value<span style="color: #666666">)</span>
+  <span style="color: #008000; font-weight: bold">def</span> map<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> U<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #666666">(</span>value<span style="color: #666666">))</span>
+  <span style="color: #008000; font-weight: bold">def</span> filter<span style="color: #666666">(</span>p<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Boolean</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">try</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>p<span style="color: #666666">(</span>value<span style="color: #666666">))</span> <span style="color: #008000; font-weight: bold">this</span>
+      <span style="color: #008000; font-weight: bold">else</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">NoSuchElementException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;Predicate does not hold for &quot;</span> <span style="color: #666666">+</span> value<span style="color: #666666">))</span>
+    <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span>
+  <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">def</span> recover<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>rescueException<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span>
+  <span style="color: #008000; font-weight: bold">def</span> failed<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">UnsupportedOperationException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;Success.failed&quot;</span><span style="color: #666666">))</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>おなじみのmap, flatMap, filterなどが定義されているが、これらはいずれも <code>Try</code> に定義されているメソッドである。</p>
+</div>
+<div class="listingblock">
+<div class="title">scala.util.Failure</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25</div></td><td class="code"><span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">[</span><span style="color: #B00040">+T</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">val</span> exception<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Throwable</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">def</span> isFailure<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Boolean</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">true</span>
+  <span style="color: #008000; font-weight: bold">def</span> isSuccess<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Boolean</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">false</span>
+  <span style="color: #008000; font-weight: bold">def</span> recoverWith<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+    <span style="color: #008000; font-weight: bold">try</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>f isDefinedAt exception<span style="color: #666666">)</span> f<span style="color: #666666">(</span>exception<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">this</span>
+    <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">def</span> get<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">throw</span> exception
+  <span style="color: #008000; font-weight: bold">def</span> flatMap<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]]</span>
+  <span style="color: #008000; font-weight: bold">def</span> flatten<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">implicit</span> ev<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #008000; font-weight: bold">&lt;:</span><span style="color: #B00040">&lt;</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]]</span>
+  <span style="color: #008000; font-weight: bold">def</span> foreach<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> U<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span> <span style="color: #666666">=</span> <span style="color: #666666">()</span>
+  <span style="color: #008000; font-weight: bold">def</span> map<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> U<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]]</span>
+  <span style="color: #008000; font-weight: bold">def</span> filter<span style="color: #666666">(</span>p<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Boolean</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">this</span>
+  <span style="color: #008000; font-weight: bold">def</span> recover<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>rescueException<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+    <span style="color: #008000; font-weight: bold">try</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>rescueException isDefinedAt exception<span style="color: #666666">)</span> <span style="color: #666666">{</span>
+        <span style="color: #0000FF; font-weight: bold">Try</span><span style="color: #666666">(</span>rescueException<span style="color: #666666">(</span>exception<span style="color: #666666">))</span>
+      <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">this</span>
+    <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>e<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">def</span> failed<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span>exception<span style="color: #666666">)</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Success</code> とはメソッドの処理が異なってくるが、recoverはtry-catchのなかでさらにTry(rescue?)しているのに対し、recoverWithはしていない。<br>
+recoverとrecoverWithではPartialFunctionの型がことなる。recoverWithはTry[U]をとる。<br>
+failedメソッドはよくみるとおもしろい。<code>Failure</code> では <code>Success</code> が、 <code>Success</code> では <code>Failure</code> が返ってくる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>試しにTryを作ってみる。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val trying = Try[Int]{ throw new IllegalStateException("test") }
+trying: scala.util.Try[Int] = Failure(java.lang.IllegalStateException: test)
+
+scala&gt; val recover = trying.recover{ case e: IllegalStateException =&gt; 777 }
+recover: scala.util.Try[Int] = Success(777)
+
+scala&gt; val recoverWith = trying.recoverWith{ case e: IllegalStateException =&gt; 777 }
+&lt;console&gt;:9: error: type mismatch;
+ found   : Int(777)
+ required: scala.util.Try[?]
+       val recoverWith = trying.recoverWith{ case e: IllegalStateException =&gt; 777 } // 型エラー
+                                                                              ^
+scala&gt; val recoverWith = trying.recoverWith{ case e: IllegalStateException =&gt; Success(777) }
+recoverWith: scala.util.Try[Int] = Success(777)
+
+scala&gt; recoverWith.filter(_/2 == 0)
+res7: scala.util.Try[Int] = Failure(java.util.NoSuchElementException: Predicate does not hold for 777)
+
+scala&gt; recoverWith.filter(_/2 != 0)
+res8: scala.util.Try[Int] = Success(777)
+
+scala&gt; val strying = recoverWith.map(s =&gt; s.toString)
+strying: scala.util.Try[String] = Success(777)
+
+scala&gt; strying.get
+res10: String = 777</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Future</code> にも後述するようにrecoverやrecoverWithメソッドが存在し引数のシグネチャも似ている。<br></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Futureを作ってみる。<span class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnote_4" title="View footnote.">4</a>]</span></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f1 = Future[Int]{ 777 }
+f1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@59f99ea
+
+scala&gt; f1.value
+res1: Option[scala.util.Try[Int]] = Some(Success(777))
+
+scala&gt; val f1 = Future { "Hello" + "World" }
+f1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@1a3869f4
+
+scala&gt; val result = Await.result(f1, Duration.Inf)
+result: String = HelloWorld</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>1行目でFuture関数を定義している。{}の中身は最終的に <code>cala.concurrent.impl.Future#apply</code> へ引数としてわたされる。<br>
+実体が <code>Promise</code> となっているが、<code>Promise</code> の実装は非常に複雑であるため本書では扱わない。<span class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span><br>
+<code>Future</code> の基本的な構成要素をみてきたので、次項以降では具体的にメソッドを使って実装方法を説明する。</p>
+</div>
+<hr>
 </div>
 <div class="sect3">
-<h4 id="_onfailure">2.2.3. onFailure</h4>
+<h4 id="_map_flatmap_collect">2.2.3. map, flatMap, collect</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Future</code> を作成し、それをいろいろな構文で値を取り出してみる。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f1 = Future { "Hello" + "World" }
+f1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@79ad8b2f
 
+scala&gt; val f2 = f1 map { x =&gt; x.length }
+f2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@54d9d12d
+
+scala&gt; val result = Await.result(f2, Duration.Inf)
+result: Int = 10</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>mapを使って、 <code>Future</code> の値[String型]（HelloWorld)の長さを取り出した。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// f1 はそのまま使用することとする。
+scala&gt; val rate = Future { 3.00 }
+rate: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@1bab8268
+
+scala&gt; val f3 = f1 flatMap { x =&gt; rate map { y =&gt; x.length * y }}
+f3: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@600b90df
+
+scala&gt; val result = Await.result(f3, Duration.Inf)
+result: Double = 30.0</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>flatMapを使って、 <code>Future</code> を合成した値を取り出した。<br>
+上の例のflatMapの部分をmapを使ってみるとどうなるだろう。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f3 = f1 map { x =&gt; rate map { y =&gt; x.length * y }}
+f3: scala.concurrent.Future[scala.concurrent.Future[Double]] = scala.concurrent.impl.Promise$DefaultPromise@74a6a609
+
+scala&gt; val result = Await.result(f3, Duration.Inf)
+result: scala.concurrent.Future[Double] = scala.concurrent.impl.Promise$DefaultPromise@60a2630a
+
+scala&gt; val result2 = Await.result(result, Duration.Inf)
+result2: Double = 30.0</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>flatMapを使った例では f3 は　<code>Future[Double]</code> 型 であるのに対し、mapで置き換えてみると <code>Future[Future[Double]]</code> 型になっている。</p>
+</div>
+<div class="listingblock">
+<div class="title">Future#map</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px">1
+2
+3
+4
+5</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> map<span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> S<span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span> <span style="color: #408080; font-style: italic">// transform(f, identity)</span>
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span> v <span style="color: #008000; font-weight: bold">=&gt;</span> p complete <span style="color: #666666">(</span>v map f<span style="color: #666666">)</span> <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Future#flatMap</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</div></td><td class="code"><span style="color: #008000; font-weight: bold">def</span> flatMap<span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">impl.Promise.DefaultPromise</span>
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">DefaultPromise</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Failure</span><span style="color: #666666">[</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p complete f<span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">Failure</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]]</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span>v<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">try</span> f<span style="color: #666666">(</span>v<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">match</span> <span style="color: #666666">{</span>
+      <span style="color: #408080; font-style: italic">// If possible, link DefaultPromises to avoid space leaks</span>
+      <span style="color: #008000; font-weight: bold">case</span> dp<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">DefaultPromise</span><span style="color: #666666">[</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> dp<span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">DefaultPromise</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]].</span>linkRootOf<span style="color: #666666">(</span>p<span style="color: #666666">)</span>
+      <span style="color: #008000; font-weight: bold">case</span> fut <span style="color: #008000; font-weight: bold">=&gt;</span> fut<span style="color: #666666">.</span>onComplete<span style="color: #666666">(</span>p<span style="color: #666666">.</span>complete<span style="color: #666666">)(</span>internalExecutor<span style="color: #666666">)</span>
+    <span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span> <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>t<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p failure t <span style="color: #666666">}</span>
+  <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>mapもflatMapも共に戻り型は <code>Future[S]</code> だが、flatMapは <code>Future</code> を戻り型とする関数を引数にとる。
+上の実行例の違いは引数の違いで現れたことがわかった。<span class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnote_6" title="View footnote.">6</a>]</span><br>
+<code>onComplete</code> は驚くほど実装がことなる。
+flatMapの実装は難解だが、幸いな事に flatMap 演算は使いやすく、また分かりやすい for 内包表記以外の場合はあまり使われない。
+<span class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnote_7" title="View footnote.">7</a>]</span></p>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_map_flatmap_collect">2.2.4. map, flatMap, collect</h4>
+<h4 id="_recover_recoverwith">2.2.4. recover, recoverWith</h4>
+<div class="paragraph">
+<p>recover, recoverWithは先ほど説明した <code>Try</code> 型で定義されているものと引数型の関係性は同様である。<br></p>
+</div>
+<div class="listingblock">
+<div class="title">Future#recover</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Creates a new future that will handle any matching throwable that this</span>
+<span style="color: #408080; font-style: italic"> *  future might contain. If there is no match, or if this future contains</span>
+<span style="color: #408080; font-style: italic"> *  a valid result then the new future will contain the same.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Example:</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  future (6 / 0) recover { case e: ArithmeticException =&gt; 0 } // result: 0</span>
+<span style="color: #408080; font-style: italic"> *  future (6 / 0) recover { case e: NotFoundException   =&gt; 0 } // result: exception</span>
+<span style="color: #408080; font-style: italic"> *  future (6 / 2) recover { case e: ArithmeticException =&gt; 0 } // result: 3</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> recover<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">U</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span> v <span style="color: #008000; font-weight: bold">=&gt;</span> p complete <span style="color: #666666">(</span>v recover pf<span style="color: #666666">)</span> <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>戻り型は <code>Future</code> である。 <code>onComplete</code> 内部で使用されている　<code>recover</code> は <code>Try#recover</code> である。</p>
+</div>
+<div class="listingblock">
+<div class="title">Future#recoverWith</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Creates a new future that will handle any matching throwable that this</span>
+<span style="color: #408080; font-style: italic"> *  future might contain by assigning it a value of another future.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If there is no match, or if this future contains</span>
+<span style="color: #408080; font-style: italic"> *  a valid result then the new future will contain the same result.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Example:</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  val f = future { Int.MaxValue }</span>
+<span style="color: #408080; font-style: italic"> *  future (6 / 0) recoverWith { case e: ArithmeticException =&gt; f } // result: Int.MaxValue</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> recoverWith<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Throwable</span>, <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span>t<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">try</span> pf<span style="color: #666666">.</span>applyOrElse<span style="color: #666666">(</span>t<span style="color: #666666">,</span> <span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">_:</span> <span style="color: #B00040">Throwable</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">).</span>onComplete<span style="color: #666666">(</span>p<span style="color: #666666">.</span>complete<span style="color: #666666">)(</span>internalExecutor<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">catch</span> <span style="color: #666666">{</span> <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">NonFatal</span><span style="color: #666666">(</span>t<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p failure t <span style="color: #666666">}</span>
+    <span style="color: #008000; font-weight: bold">case</span> other <span style="color: #008000; font-weight: bold">=&gt;</span> p complete other
+  <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>onComplete</code> 内部処理はやや難解ではあるが、コメントにあるExampleのように記述することができると認識できれば、よいだろう。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>実際にやってみよう。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f1 = Future { throw new IllegalArgumentException("need recover") }
+f1: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@490ab905
 
+scala&gt; val r1 = f1.recover{ case e: IllegalArgumentException =&gt; "fallbacked" }
+r1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@8909f18
+
+scala&gt; val r2 = f1.recoverWith{ case e: IllegalArgumentException =&gt; Future.failed(e) }
+r2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@64ec96c6
+
+scala&gt; r2.value
+res2: Option[scala.util.Try[Nothing]] = Some(Failure(java.lang.IllegalArgumentException: need recover))
+
+scala&gt; r2.value.get
+res3: scala.util.Try[Nothing] = Failure(java.lang.IllegalArgumentException: need recover)
+
+scala&gt; r2.value.get.get
+java.lang.IllegalArgumentException: need recover
+  at $anonfun$1.apply(&lt;console&gt;:12)
+  at $anonfun$1.apply(&lt;console&gt;:12)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>recoverWithの戻り型が <code>Future[Nothing]</code> となっており、<code>Future</code> の値を取得すると <code>Try[Nothing]</code> となっているが、
+さらに値を取得すると例外が発生する。 <code>Nothing</code> と表現されている辺りscalaっぽさを感じるところである。</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_recover_recoverwith">2.2.5. recover, recoverWith</h4>
-
+<h4 id="_zip_mapto_transform">2.2.5. zip, mapTo, transform</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>まずは使ってみよう。</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_zip_mapto_transform">2.2.6. zip, mapTo, transform</h4>
-
+<h4 id="_andthen">2.2.6. andThen</h4>
+<div class="paragraph">
+<p><em class="green">TBD</em></p>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_andthen">2.2.7. andThen</h4>
-
+<h4 id="_object_future">2.2.7. object Future</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>コンパニオンオブジェクトに定義されているメソッドをみていく。</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_object_future">2.2.8. object Future</h4>
-
+<h4 id="_for内包表記いろいろ">2.2.8. for内包表記いろいろ</h4>
+<div class="paragraph">
+<p><em class="green">TBD</em></p>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_for内包表記">2.2.9. for内包表記</h4>
-
+<h4 id="_akka_actor">2.2.9. Akka Actor</h4>
+<div class="paragraph">
+<p><em class="green">TBD</em></p>
 </div>
-<div class="sect3">
-<h4 id="_akka_actor">2.2.10. Akka Actor</h4>
-
+<hr>
 </div>
 </div>
 <div class="sect2">
@@ -1735,11 +2279,23 @@ ExecutionContext.Implicits.globalをみておこう。<code>lazy val</code> と�
 <div class="footnote" id="_footnote_3">
 <a href="#_footnoteref_3">3</a>. 静的スコープとも呼ぶ。定義した時点でスコープが確定する。
 </div>
+<div class="footnote" id="_footnote_4">
+<a href="#_footnoteref_4">4</a>. 以下のREPLではscala.concurrent.{Future, Await}, scala.concurrent.duration._, scala.concurrent.ExecutionContext.Implicits.globalのimportが必要になる。
+</div>
+<div class="footnote" id="_footnote_5">
+<a href="#_footnoteref_5">5</a>. ぜひソースコードを読んでみて欲しい。
+</div>
+<div class="footnote" id="_footnote_6">
+<a href="#_footnoteref_6">6</a>. Option型で現れたmapとflatMapの違いにも同様に引数型の違いがある。
+</div>
+<div class="footnote" id="_footnote_7">
+<a href="#_footnoteref_7">7</a>. <a href="http://docs.scala-lang.org/ja/overviews/core/futures.html" class="bare">http://docs.scala-lang.org/ja/overviews/core/futures.html</a>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-23 19:48:41 JST
+Last updated 2015-09-26 17:30:18 JST
 </div>
 </div>
 </body>

@@ -1,0 +1,294 @@
+== Future
+
+****
+ここではscala.concurrent.Futureの使い方をみていく。
+Futureは非同期処理で頻出する型なので、ぜひとも習得しておきたい。
+また、合わせてfor内包表記についてもまとめる。
+****
+
+=== Futureとは
+- Java言語経験者なら1.5footnote:[1.8からはCompletableFutureが導入されている。]から導入された `java.util.concurrent.Future` を想定するかもしれない。
+- `play.api.libs.ws.WSRequest#execute` の戻り値は `Future[WSResponse]` である。
+- `play.libs.Akka` アクター と非同期的にやり取りをすると、戻り値がFutureオブジェクトが返ってくる。（公式ドキュメントより）
+- `Future` は未来と訳すことができるため、現時点では `Future` とは未来（に行われる処理）を記述することと定義しておく。
+
+'''
+詳細に調べたいため、早速だがソースをみてみよう。
+
+.scala.concurrent.Future.scala
+[source, scala]
+----
+trait Future[+T] extends Awaitable[T]
+----
+- `Awaitable` を継承しているトレイトとして宣言されている。 +
+  `Awaitable` はreadyとresultメソッドを宣言しているトレイトである。 +
+  onSuccess, onFailureをはじめ map, flatMap, filter, collectなど `Option` クラスでみてきたおなじみのメソッドや、 +
+  recoverやzip, mapTo, transformなどの興味深いメソッドが定義されている。
+
+[source, scala]
+----
+object Future
+----
+- お約束の `companion object` も同ファイルに宣言されている。こちらにはapplyを含むメソッドが定義されている。 +
+  sequence, find, fold, reduce, traverseなどもコンパニオンオブジェクトに定義されている。 +
+
+'''
+- trait Futureからみていく。
+
+[source, scala]
+----
+private def internalExecutor = Future.InternalCallbackExecutor
+----
+- 内部にCallback用のExecutorが定義されている。これはレキシカルスコープfootnote:[静的スコープとも呼ぶ。定義した時点でスコープが確定する。]とのこと。 +
+  実際のプログラムでFutureを扱う際は　`import scala.concurrent.ExecutionContext.Implicits.global` が必要になる。なので、プログラムからinternalExecutorを意識する必要はない。 +
+  ExecutionContext.Implicits.globalをみておこう。`lazy val` として宣言されており、必要となったときにインスタンスが生成される。
+
+[source, scala, linenums]
+----
+object ExecutionContext {
+  /**
+   * This is the explicit global ExecutionContext,
+   * call this when you want to provide the global ExecutionContext explicitly
+   */
+  def global: ExecutionContextExecutor = Implicits.global
+
+  object Implicits {
+    /**
+     * This is the implicit global ExecutionContext,
+     * import this when you want to provide the global ExecutionContext implicitly
+     */
+    implicit lazy val global: ExecutionContextExecutor = impl.ExecutionContextImpl.fromExecutor(null: Executor)
+  }
+  ...
+----
+最終的には ExecutionContextImpl.fromExecutorにより `scala.concurrent.impl.ExecutionContextImpl` インスタンスを生成している。 +
+参考までに生成箇所を載せておく。
+
+.ExecutionContextImpl#createExecutorService
+[source, scala, linenums]
+----
+def createExecutorService: ExecutorService = {
+
+  def getInt(name: String, f: String => Int): Int =
+      try f(System.getProperty(name)) catch { case e: Exception => Runtime.getRuntime.availableProcessors }
+  def range(floor: Int, desired: Int, ceiling: Int): Int =
+    if (ceiling < floor) range(ceiling, desired, floor) else scala.math.min(scala.math.max(desired, floor), ceiling)
+
+  val desiredParallelism = range(
+    getInt("scala.concurrent.context.minThreads", _.toInt),
+    getInt("scala.concurrent.context.numThreads", {
+      case null | "" => Runtime.getRuntime.availableProcessors
+      case s if s.charAt(0) == x => (Runtime.getRuntime.availableProcessors * s.substring(1).toDouble).ceil.toInt
+      case other => other.toInt
+    }),
+    getInt("scala.concurrent.context.maxThreads", _.toInt))
+
+  val threadFactory = new DefaultThreadFactory(daemonic = true)
+
+  try {
+    new ForkJoinPool(
+      desiredParallelism,
+      threadFactory,
+      uncaughtExceptionHandler,
+      true) // Async all the way baby
+  } catch {
+    case NonFatal(t) =>
+      System.err.println("Failed to create ForkJoinPool for the default ExecutionContext, falling back to ThreadPoolExecutor")
+      t.printStackTrace(System.err)
+      val exec = new ThreadPoolExecutor(
+        desiredParallelism,
+        desiredParallelism,
+        5L,
+        TimeUnit.MINUTES,
+        new LinkedBlockingQueue[Runnable],
+        threadFactory
+      )
+      exec.allowCoreThreadTimeOut(true)
+      exec
+  }
+}
+----
+CAUTION: ExecutorServiceやForkJoinPoolなどJavaでおなじみのインターフェースやクラスで実装されていることがわかる。
+
+=== onSuccess,onFailure
+.Future#onSuccess
+
+[source, scala, linenums]
+----
+def onSuccess[U](pf: PartialFunction[T, U])(implicit executor: ExecutionContext): Unit = onComplete {
+  case Success(v) =>
+    pf.applyOrElse[T, Any](v, Predef.conforms[T]) // Exploiting the cached function to avoid MatchError
+  case _ =>
+}
+----
+引数をみると、PartialFunctionと `ExecutionContext` が定義されているが、`ExecutionContext` のほうは `implicit` である。 +
+すなわち先ほど述べたExecutionContext.Implicits.globalのimportが必要になる。
+
+-  `onComplete` を呼び出しており、戻り型は `Unit` である。 +
+`scala.util.Success` の場合のみ処理を行うFunctionを引数にとっている。
+
+.Future#onComplete
+[source, scala, linenums]
+----
+def onComplete[U](func: Try[T] => U)(implicit executor: ExecutionContext): Unit
+----
+`onComplete` の定義をみてみると `(func: Try[T] => U)` を引数にとることがわかる。
+
+.Future#onFailure
+
+[source, scala, linenums]
+----
+def onFailure[U](callback: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Unit = onComplete {
+  case Failure(t) =>
+    callback.applyOrElse[Throwable, Any](t, Predef.conforms[Throwable]) // Exploiting the cached function to avoid MatchError
+  case _ =>
+}
+----
+`onFailure` の引数シグネチャは `onSuccess` と比べると幾つか違いがある。 +
+PartialFunctionの型がThrowableとなっていること。PartialFunctionの名前がcallbackになっていること。 +
+`scala.util.Failure` の場合のみ処理を行う。
+
+'''
+
+- 少し寄り道をして `scala.util.Success` , `scala.util.Failure` についてみていきたい。 +
+`Success` および　`Failure` は `scala.util.Try.scala` で定義されている。
+.scala.util.Try
+
+[source, scala, linenums]
+----
+object Try {
+  /** Constructs a `Try` using the by-name parameter.  This
+   * method will ensure any non-fatal exception is caught and a
+   * `Failure` object is returned.
+   */
+  def apply[T](r: => T): Try[T] =
+    try Success(r) catch {
+      case NonFatal(e) => Failure(e)
+    }
+
+}
+----
+Try型のコンパニオンオブジェクトは上記のように定義されている。try-catch構文である。
+
+[source, scala, linenums]
+----
+sealed abstract class Try[+T]
+----
+class定義は `sealed` されているため、Try.scala内でのみ継承が許されている。実際 `final case class` として `Success` と `Failure` のみ定義されている。 +
+
+.scala.util.Success
+[source, scala, linenums]
+----
+final case class Success[+T](value: T) extends Try[T] {
+  def isFailure: Boolean = false
+  def isSuccess: Boolean = true
+  def recoverWith[U >: T](f: PartialFunction[Throwable, Try[U]]): Try[U] = this
+  def get = value
+  def flatMap[U](f: T => Try[U]): Try[U] =
+    try f(value)
+    catch {
+      case NonFatal(e) => Failure(e)
+    }
+  def flatten[U](implicit ev: T <:< Try[U]): Try[U] = value
+  def foreach[U](f: T => U): Unit = f(value)
+  def map[U](f: T => U): Try[U] = Try[U](f(value))
+  def filter(p: T => Boolean): Try[T] = {
+    try {
+      if (p(value)) this
+      else Failure(new NoSuchElementException("Predicate does not hold for " + value))
+    } catch {
+      case NonFatal(e) => Failure(e)
+    }
+  }
+  def recover[U >: T](rescueException: PartialFunction[Throwable, U]): Try[U] = this
+  def failed: Try[Throwable] = Failure(new UnsupportedOperationException("Success.failed"))
+}
+----
+おなじみのmap, flatMap, filterなどが定義されているが、これらはいずれも `Try` に定義されているメソッドである。
+
+.scala.util.Failure
+[source, scala, linenums]
+----
+final case class Failure[+T](val exception: Throwable) extends Try[T] {
+  def isFailure: Boolean = true
+  def isSuccess: Boolean = false
+  def recoverWith[U >: T](f: PartialFunction[Throwable, Try[U]]): Try[U] =
+    try {
+      if (f isDefinedAt exception) f(exception) else this
+    } catch {
+      case NonFatal(e) => Failure(e)
+    }
+  def get: T = throw exception
+  def flatMap[U](f: T => Try[U]): Try[U] = this.asInstanceOf[Try[U]]
+  def flatten[U](implicit ev: T <:< Try[U]): Try[U] = this.asInstanceOf[Try[U]]
+  def foreach[U](f: T => U): Unit = ()
+  def map[U](f: T => U): Try[U] = this.asInstanceOf[Try[U]]
+  def filter(p: T => Boolean): Try[T] = this
+  def recover[U >: T](rescueException: PartialFunction[Throwable, U]): Try[U] =
+    try {
+      if (rescueException isDefinedAt exception) {
+        Try(rescueException(exception))
+      } else this
+    } catch {
+      case NonFatal(e) => Failure(e)
+    }
+  def failed: Try[Throwable] = Success(exception)
+}
+----
+`Success` とはメソッドの処理が異なってくるが、recoverはtry-catchのなかでさらにTry(rescue?)しているのに対し、recoverWithはしていない。 +
+recoverとrecoverWithではPartialFunctionの型がことなる。recoverWithはTry[U]をとる。 +
+failedメソッドはよくみるとおもしろい。`Failure` では `Success` が、 `Success` では `Failure` が返ってくる。
+
+* 試しにTryを作ってみる。
+
+----
+scala> val trying = Try[Int]{ throw new IllegalStateException("test") }
+trying: scala.util.Try[Int] = Failure(java.lang.IllegalStateException: test)
+
+scala> val recover = trying.recover{ case e: IllegalStateException => 777 }
+recover: scala.util.Try[Int] = Success(777)
+
+scala> val recoverWith = trying.recoverWith{ case e: IllegalStateException => 777 }
+<console>:9: error: type mismatch;
+ found   : Int(777)
+ required: scala.util.Try[?]
+       val recoverWith = trying.recoverWith{ case e: IllegalStateException => 777 } // 型エラー
+                                                                              ^
+scala> val recoverWith = trying.recoverWith{ case e: IllegalStateException => Success(777) }
+recoverWith: scala.util.Try[Int] = Success(777)
+
+scala> recoverWith.filter(_/2 == 0)
+res7: scala.util.Try[Int] = Failure(java.util.NoSuchElementException: Predicate does not hold for 777)
+
+scala> recoverWith.filter(_/2 != 0)
+res8: scala.util.Try[Int] = Success(777)
+
+scala> val strying = recoverWith.map(s => s.toString)
+strying: scala.util.Try[String] = Success(777)
+
+scala> strying.get
+res10: String = 777
+----
+`Future` にも後述するようにrecoverやrecoverWithメソッドが存在し引数のシグネチャも似ている。 +
+
+* Futureを作ってみる。footnote:[以下のREPLではscala.concurrent.{Future, Await}, scala.concurrent.duration._, scala.concurrent.ExecutionContext.Implicits.globalのimportが必要になる。]
+
+----
+scala> val f1 = Future[Int]{ 777 }
+f1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@59f99ea
+
+scala> f1.value
+res1: Option[scala.util.Try[Int]] = Some(Success(777))
+
+scala> val f1 = Future { "Hello" + "World" }
+f1: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@1a3869f4
+
+scala> val result = Await.result(f1, Duration.Inf)
+result: String = HelloWorld
+----
+
+1行目でFuture関数を定義している。{}の中身は最終的に `cala.concurrent.impl.Future#apply` へ引数としてわたされる。 +
+実体が `Promise` となっているが、`Promise` の実装は非常に複雑であるため本書では扱わない。footnote:[ぜひソースコードを読んでみて欲しい。] +
+`Future` の基本的な構成要素をみてきたので、次項以降では具体的にメソッドを使って実装方法を説明する。
+
+'''
