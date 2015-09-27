@@ -1,0 +1,7 @@
+=== for内包表記いろいろ
+[green]_TBD_
+
+=== Akka Actor
+[green]_TBD_
+
+'''

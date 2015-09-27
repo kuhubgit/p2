@@ -450,7 +450,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_onsuccess_onfailure">2.2.2. onSuccess,onFailure</a></li>
 <li><a href="#_map_flatmap_collect">2.2.3. map, flatMap, collect</a></li>
 <li><a href="#_recover_recoverwith">2.2.4. recover, recoverWith</a></li>
-<li><a href="#_zip_mapto_transform">2.2.5. zip, mapTo, transform</a></li>
+<li><a href="#_zip_mapto">2.2.5. zip, mapTo</a></li>
 <li><a href="#_andthen">2.2.6. andThen</a></li>
 <li><a href="#_object_future">2.2.7. object Future</a></li>
 <li><a href="#_for内包表記いろいろ">2.2.8. for内包表記いろいろ</a></li>
@@ -2058,11 +2058,178 @@ result2: Double = 30.0</pre>
 flatMapの実装は難解だが、幸いな事に flatMap 演算は使いやすく、また分かりやすい for 内包表記以外の場合はあまり使われない。
 <span class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnote_7" title="View footnote.">7</a>]</span></p>
 </div>
+<div class="ulist">
+<ul>
+<li>
+<p>collect</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Future#collect</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Creates a new future by mapping the value of the current future, if the given partial function is defined at that value.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If the current future contains a value for which the partial function is defined, the new future will also hold that value.</span>
+<span style="color: #408080; font-style: italic"> *  Otherwise, the resulting future will fail with a `NoSuchElementException`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If the current future fails, then the resulting future also fails.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Example:</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  val f = future { -5 }</span>
+<span style="color: #408080; font-style: italic"> *  val g = f collect {</span>
+<span style="color: #408080; font-style: italic"> *    case x if x &lt; 0 =&gt; -x</span>
+<span style="color: #408080; font-style: italic"> *  }</span>
+<span style="color: #408080; font-style: italic"> *  val h = f collect {</span>
+<span style="color: #408080; font-style: italic"> *    case x if x &gt; 0 =&gt; x * 2</span>
+<span style="color: #408080; font-style: italic"> *  }</span>
+<span style="color: #408080; font-style: italic"> *  Await.result(g, Duration.Zero) // evaluates to 5</span>
+<span style="color: #408080; font-style: italic"> *  Await.result(h, Duration.Zero) // throw a NoSuchElementException</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> collect<span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">T</span>, <span style="color: #B00040">S</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+  map <span style="color: #666666">{</span>
+    r <span style="color: #008000; font-weight: bold">=&gt;</span> pf<span style="color: #666666">.</span>applyOrElse<span style="color: #666666">(</span>r<span style="color: #666666">,</span> <span style="color: #666666">(</span>t<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">NoSuchElementException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;Future.collect partial function is not defined at: &quot;</span> <span style="color: #666666">+</span> t<span style="color: #666666">))</span>
+  <span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ソースコードのExampleをみると、<code>Future</code> のcollectの使い方はなんとなくわかる。<br>
+<code>NoSuchElementException</code> がthrowされることに注意する必要がありそうだ。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f = Future { 777 }
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@31ef45e3
+
+scala&gt; val g = f collect { case x if x != 333 =&gt; "fever" } // 条件にマッチしない場合、 `NoSuchElementException` が発生する。
+g: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@50a7bc6e
+
+scala&gt; val result = Await.result(g, Duration.Zero)
+result: String = fever</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>filterメソッドとの違いはソースコードコメントの１行目にある <code>mapping the value of the current future</code> ように、値を変換できることである。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>複数条件で検査したい場合などは <code>fallbackTo</code> メソッドを使って以下のように記述することも可能である。</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f = Future { 333 }
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@5c77ba8f
+
+scala&gt; val g = f collect { case x if x != 333 =&gt; "fever" }
+g: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@53311681
+
+scala&gt; val h = f collect { case x if x == 333 =&gt; "regular" }
+h: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@6242ae3b
+
+scala&gt; val fallback2 = g fallbackTo h
+fallback2: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@3cad68df
+
+scala&gt; val result = Await.result(fallback2, Duration.Zero)
+result: String = regular</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Future#fallbackTo</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Creates a new future which holds the result of this future if it was completed successfully, or, if not,</span>
+<span style="color: #408080; font-style: italic"> *  the result of the `that` future if `that` is completed successfully.</span>
+<span style="color: #408080; font-style: italic"> *  If both futures are failed, the resulting future holds the throwable object of the first future.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Using this method will not cause concurrent programs to become nondeterministic.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Example:</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  val f = future { sys.error(&quot;failed&quot;) }</span>
+<span style="color: #408080; font-style: italic"> *  val g = future { 5 }</span>
+<span style="color: #408080; font-style: italic"> *  val h = f fallbackTo g</span>
+<span style="color: #408080; font-style: italic"> *  Await.result(h, Duration.Zero) // evaluates to 5</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> fallbackTo<span style="color: #666666">[</span><span style="color: #B00040">U</span> <span style="color: #008000; font-weight: bold">&gt;:</span> <span style="color: #B00040">T</span><span style="color: #666666">](</span>that<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">val</span> ec <span style="color: #008000; font-weight: bold">=</span> internalExecutor
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> s <span style="color: #008000; font-weight: bold">@</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p complete s
+    <span style="color: #008000; font-weight: bold">case</span> f <span style="color: #008000; font-weight: bold">@</span> <span style="color: #0000FF; font-weight: bold">Failure</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> that onComplete <span style="color: #666666">{</span>
+      <span style="color: #008000; font-weight: bold">case</span> s2 <span style="color: #008000; font-weight: bold">@</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p complete s2
+      <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">_</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p complete f <span style="color: #408080; font-style: italic">// Use the first failure as the failure</span>
+    <span style="color: #666666">}</span>
+  <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>fallbackToについては上に示した例のとおり比較的理解しやすい概念のメソッドである。<br>
+ソースコードのcase式の構成もわかりやすい記述である。<br>
+両方の <code>Future</code> が失敗した場合は 最初の <code>Future</code> で発生した失敗が返却されるようだ。<br>
+<code>implicit val ec = internalExecutor</code> とあるように 内部の <code>Executor(callback)</code> を使用している点も注意したい。</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_recover_recoverwith">2.2.4. recover, recoverWith</h4>
 <div class="paragraph">
-<p>recover, recoverWithは先ほど説明した <code>Try</code> 型で定義されているものと引数型の関係性は同様である。<br></p>
+<p>recoverとrecoverWithの関係性は先ほど説明した <code>Try</code> 型で定義されているものと引数型の関係性は同様である。<br></p>
 </div>
 <div class="listingblock">
 <div class="title">Future#recover</div>
@@ -2201,21 +2368,292 @@ java.lang.IllegalArgumentException: need recover
 </li>
 </ul>
 </div>
+<hr>
 </div>
 <div class="sect3">
-<h4 id="_zip_mapto_transform">2.2.5. zip, mapTo, transform</h4>
+<h4 id="_zip_mapto">2.2.5. zip, mapTo</h4>
 <div class="ulist">
 <ul>
 <li>
-<p>まずは使ってみよう。</p>
+<p>まずはzipから。</p>
 </li>
 </ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val z1 = Future { 9 }
+z1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@127705e4
+
+scala&gt; val z2 = Future { 10 }
+z2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@3eb3232b
+
+scala&gt; val zip = z1 zip z2
+zip: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@7fda2001
+
+scala&gt; val result = for{ r1 &lt;- z1; r2 &lt;- z2 } yield { println((r1,r2)) } // 別々のFutureを実行
+result: scala.concurrent.Future[Unit] = scala.concurrent.impl.Promise$DefaultPromise@35025a0a
+(9,10)
+
+scala&gt; val result2 = for{ r &lt;- zip } yield { println(r) } // zipしたFutureを実行
+(9,10)
+result2: scala.concurrent.Future[Unit] = scala.concurrent.impl.Promise$DefaultPromise@42d9e8d2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ということのようだ。名前のとおり <code>Future</code> をまとめて実行しているようだ。<br>
+とりあえず、ソースをみてみよう。</p>
+</div>
+<div class="listingblock">
+<div class="title">Future#zip</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Zips the values of `this` and `that` future, and creates</span>
+<span style="color: #408080; font-style: italic"> *  a new future holding the tuple of their results.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If `this` future fails, the resulting future is failed</span>
+<span style="color: #408080; font-style: italic"> *  with the throwable stored in `this`.</span>
+<span style="color: #408080; font-style: italic"> *  Otherwise, if `that` future fails, the resulting future is failed</span>
+<span style="color: #408080; font-style: italic"> *  with the throwable stored in `that`.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> zip<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>that<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[(</span><span style="color: #B00040">T</span>, <span style="color: #B00040">U</span><span style="color: #666666">)]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">val</span> ec <span style="color: #008000; font-weight: bold">=</span> internalExecutor
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[(</span><span style="color: #B00040">T</span>, <span style="color: #B00040">U</span><span style="color: #666666">)]()</span>
+  onComplete <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Failure</span><span style="color: #666666">[</span><span style="color: #008000; font-weight: bold">_</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> p complete f<span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">Failure</span><span style="color: #666666">[(</span><span style="color: #B00040">T</span>, <span style="color: #B00040">U</span><span style="color: #666666">)]]</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Success</span><span style="color: #666666">(</span>s<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> that onComplete <span style="color: #666666">{</span> c <span style="color: #008000; font-weight: bold">=&gt;</span> p<span style="color: #666666">.</span>complete<span style="color: #666666">(</span>c map <span style="color: #666666">{</span> s2 <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(</span>s<span style="color: #666666">,</span> s2<span style="color: #666666">)</span> <span style="color: #666666">})</span> <span style="color: #666666">}</span>
+  <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ソースコードには特に使用例や使用コンテキストには言及していない。どのような用途に向いているのだろうか。<br>
+ただし、先ほどの <code>fallbackTo</code> と違い、failedはthatを返却するとあるので気をつけたい。<br>
+<code>fallbackTo</code> 同様にcallback(<code>internalExecutor</code>)を使用している。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// 先ほどのz2を以下のように変更して実行する。
+scala&gt; val z2 = Future { throw new IllegalArgumentException("that exception") }
+z2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@7ab63838
+
+scala&gt; val zip = z1 zip z2
+zip: scala.concurrent.Future[(Int, Nothing)] = scala.concurrent.impl.Promise$DefaultPromise@46ab4efc
+
+scala&gt; val result3 = Await.result(zip, Duration.Zero)
+java.lang.IllegalArgumentException: that exception
+  at $anonfun$1.apply(&lt;console&gt;:10)
+  at $anonfun$1.apply(&lt;console&gt;:10)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)
+
+// fallbackToと比較してみるため、z1を変更して確認する。
+scala&gt; val z1 = Future { throw new NumberFormatException("z1") }
+z1: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@1f48fa72
+
+scala&gt; val fallback2 = z1 fallbackTo z2
+fallback2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@4152bd0f
+
+scala&gt; val result4 = Await.result(fallback2, Duration.Zero)
+java.lang.NumberFormatException: z1
+  at $anonfun$1.apply(&lt;console&gt;:10)
+  at $anonfun$1.apply(&lt;console&gt;:10)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>mapTo</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Creates a new `Future[S]` which is completed with this `Future`&#39;s result if</span>
+<span style="color: #408080; font-style: italic"> *  that conforms to `S`&#39;s erased type or a `ClassCastException` otherwise.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> mapTo<span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">implicit</span> tag<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ClassTag</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">])</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">val</span> ec <span style="color: #008000; font-weight: bold">=</span> internalExecutor
+  <span style="color: #008000; font-weight: bold">val</span> boxedClass <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">val</span> c <span style="color: #008000; font-weight: bold">=</span> tag<span style="color: #666666">.</span>runtimeClass
+    <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>c<span style="color: #666666">.</span>isPrimitive<span style="color: #666666">)</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">.</span>toBoxed<span style="color: #666666">(</span>c<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">else</span> c
+  <span style="color: #666666">}</span>
+  require<span style="color: #666666">(</span>boxedClass ne <span style="color: #008000; font-weight: bold">null</span><span style="color: #666666">)</span>
+  map<span style="color: #666666">(</span>s <span style="color: #008000; font-weight: bold">=&gt;</span> boxedClass<span style="color: #666666">.</span>cast<span style="color: #666666">(</span>s<span style="color: #666666">).</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">S</span><span style="color: #666666">])</span>
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>単純なキャストを行うメソッドのようだが、用途がいまいちピンとこないためソースコードコメントを翻訳してみたのが、以下である。</p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>それはSの消去されたタイプまたはそうでなければ <code>ClassCastException</code> に準拠している場合、
+この`Future`の結果で終了した新しい <code>Future[S]</code> を作成します。</p>
+</div>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// String =&gt; Char　普通に例外になる。
+scala&gt; val f = Future { "JPY" }
+f: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@7402c49f
+
+scala&gt; val result = f.mapTo[Char]
+result: scala.concurrent.Future[Char] = scala.concurrent.impl.Promise$DefaultPromise@7c47e077
+
+scala&gt; result.value
+res1: Option[scala.util.Try[Char]] = Some(Failure(java.lang.ClassCastException: Cannot cast java.lang.String to java.lang.Character))
+
+scala&gt; result.value.get
+res2: scala.util.Try[Char] = Failure(java.lang.ClassCastException: Cannot cast java.lang.String to java.lang.Character)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Future[+T]</code> は共変<span class="footnote">[<a id="_footnoteref_8" class="footnote" href="#_footnote_8" title="View footnote.">8</a>]</span> なので、単純なキャストを行うためのメソッドではないのかもしれない。<br>
+ということで、本書ではここまで。</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_andthen">2.2.6. andThen</h4>
+<div class="listingblock">
+<div class="title">Future#andThen</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</div></td><td class="code"><span style="color: #408080; font-style: italic">/** Applies the side-effecting function to the result of this future, and returns</span>
+<span style="color: #408080; font-style: italic"> *  a new future with the result of this future.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  This method allows one to enforce that the callbacks are executed in a</span>
+<span style="color: #408080; font-style: italic"> *  specified order.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Note that if one of the chained `andThen` callbacks throws</span>
+<span style="color: #408080; font-style: italic"> *  an exception, that exception is not propagated to the subsequent `andThen`</span>
+<span style="color: #408080; font-style: italic"> *  callbacks. Instead, the subsequent `andThen` callbacks are given the original</span>
+<span style="color: #408080; font-style: italic"> *  value of this future.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  The following example prints out `5`:</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  val f = future { 5 }</span>
+<span style="color: #408080; font-style: italic"> *  f andThen {</span>
+<span style="color: #408080; font-style: italic"> *    case r =&gt; sys.error(&quot;runtime exception&quot;)</span>
+<span style="color: #408080; font-style: italic"> *  } andThen {</span>
+<span style="color: #408080; font-style: italic"> *    case Failure(t) =&gt; println(t)</span>
+<span style="color: #408080; font-style: italic"> *    case Success(v) =&gt; println(v)</span>
+<span style="color: #408080; font-style: italic"> *  }</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> andThen<span style="color: #666666">[</span><span style="color: #B00040">U</span><span style="color: #666666">](</span>pf<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span>, <span style="color: #B00040">U</span><span style="color: #666666">])(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">val</span> p <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Promise</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]()</span>
+  onComplete <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> r <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">try</span> pf<span style="color: #666666">.</span>applyOrElse<span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span>, <span style="color: #B00040">Any</span><span style="color: #666666">](</span>r<span style="color: #666666">,</span> <span style="color: #0000FF; font-weight: bold">Predef</span><span style="color: #666666">.</span>conforms<span style="color: #666666">[</span><span style="color: #B00040">Try</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]])</span> <span style="color: #008000; font-weight: bold">finally</span> p complete r
+  <span style="color: #666666">}</span>
+  p<span style="color: #666666">.</span>future
+<span style="color: #666666">}</span>
+</td></tr></table></code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p><em class="green">TBD</em></p>
+<p>try-finally構文になっている。PartialFunctionをチェーンしていくイメージのメソッドである。コメントを翻訳してみる。<br></p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p><code>this future</code> の結果に副作用関数を適用し、 <code>this future</code> の結果と <code>new future</code> を返します。
+この方法は1つがコールバックが指定された順序で実行されることを強制することができます。
+連鎖し <code>andThen</code> のコールバックの1つが例外をスローした場合、その例外は、後続 <code>andThen</code> のコールバックに伝播されていないことに注意してください。
+その代わりに、それに続く <code>andThen</code> コールバックは、 <code>this future</code> の元の値が与えられています。</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>やってみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val f = Future.successful(17)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$KeptPromise@20a4cba7
+
+scala&gt; val result = f.andThen{ case x: Try[Int] =&gt; println(x.get +2) }.andThen{ case x: Try[Int] =&gt; println(x.get + 4) }
+19
+21
+result: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@2f3c7b24
+
+scala&gt; val result2 = Await.result(result, Duration.Zero)
+result2: Int = 17</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>よく考えて使う必要がありそうなメソッドである。</p>
 </div>
 </div>
 <div class="sect3">
@@ -2223,10 +2661,12 @@ java.lang.IllegalArgumentException: need recover
 <div class="ulist">
 <ul>
 <li>
-<p>コンパニオンオブジェクトに定義されているメソッドをみていく。</p>
+<p>コンパニオンオブジェクトに定義されているメソッドをみていく。<br>
+<em class="green">TBD</em></p>
 </li>
 </ul>
 </div>
+<hr>
 </div>
 <div class="sect3">
 <h4 id="_for内包表記いろいろ">2.2.8. for内包表記いろいろ</h4>
@@ -2291,11 +2731,14 @@ java.lang.IllegalArgumentException: need recover
 <div class="footnote" id="_footnote_7">
 <a href="#_footnoteref_7">7</a>. <a href="http://docs.scala-lang.org/ja/overviews/core/futures.html" class="bare">http://docs.scala-lang.org/ja/overviews/core/futures.html</a>
 </div>
+<div class="footnote" id="_footnote_8">
+<a href="#_footnoteref_8">8</a>. コップ本を参照のこと。
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-26 17:30:18 JST
+Last updated 2015-09-27 23:10:00 JST
 </div>
 </div>
 </body>

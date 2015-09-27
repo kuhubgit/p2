@@ -1,0 +1,199 @@
+=== zip, mapTo
+
+- まずはzipから。
+
+----
+scala> val z1 = Future { 9 }
+z1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@127705e4
+
+scala> val z2 = Future { 10 }
+z2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@3eb3232b
+
+scala> val zip = z1 zip z2
+zip: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@7fda2001
+
+scala> val result = for{ r1 <- z1; r2 <- z2 } yield { println((r1,r2)) } // 別々のFutureを実行
+result: scala.concurrent.Future[Unit] = scala.concurrent.impl.Promise$DefaultPromise@35025a0a
+(9,10)
+
+scala> val result2 = for{ r <- zip } yield { println(r) } // zipしたFutureを実行
+(9,10)
+result2: scala.concurrent.Future[Unit] = scala.concurrent.impl.Promise$DefaultPromise@42d9e8d2
+----
+ということのようだ。名前のとおり `Future` をまとめて実行しているようだ。 +
+とりあえず、ソースをみてみよう。
+
+.Future#zip
+
+[source, scala, linenums]
+----
+/** Zips the values of `this` and `that` future, and creates
+ *  a new future holding the tuple of their results.
+ *
+ *  If `this` future fails, the resulting future is failed
+ *  with the throwable stored in `this`.
+ *  Otherwise, if `that` future fails, the resulting future is failed
+ *  with the throwable stored in `that`.
+ */
+def zip[U](that: Future[U]): Future[(T, U)] = {
+  implicit val ec = internalExecutor
+  val p = Promise[(T, U)]()
+  onComplete {
+    case f: Failure[_] => p complete f.asInstanceOf[Failure[(T, U)]]
+    case Success(s) => that onComplete { c => p.complete(c map { s2 => (s, s2) }) }
+  }
+  p.future
+}
+----
+ソースコードには特に使用例や使用コンテキストには言及していない。どのような用途に向いているのだろうか。 +
+ただし、先ほどの `fallbackTo` と違い、failedはthatを返却するとあるので気をつけたい。 +
+`fallbackTo` 同様にcallback(`internalExecutor`)を使用している。
+
+----
+// 先ほどのz2を以下のように変更して実行する。
+scala> val z2 = Future { throw new IllegalArgumentException("that exception") }
+z2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@7ab63838
+
+scala> val zip = z1 zip z2
+zip: scala.concurrent.Future[(Int, Nothing)] = scala.concurrent.impl.Promise$DefaultPromise@46ab4efc
+
+scala> val result3 = Await.result(zip, Duration.Zero)
+java.lang.IllegalArgumentException: that exception
+  at $anonfun$1.apply(<console>:10)
+  at $anonfun$1.apply(<console>:10)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)
+
+// fallbackToと比較してみるため、z1を変更して確認する。
+scala> val z1 = Future { throw new NumberFormatException("z1") }
+z1: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@1f48fa72
+
+scala> val fallback2 = z1 fallbackTo z2
+fallback2: scala.concurrent.Future[Nothing] = scala.concurrent.impl.Promise$DefaultPromise@4152bd0f
+
+scala> val result4 = Await.result(fallback2, Duration.Zero)
+java.lang.NumberFormatException: z1
+  at $anonfun$1.apply(<console>:10)
+  at $anonfun$1.apply(<console>:10)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)
+----
+
+- mapTo
+
+[source, scala, linenums]
+----
+/** Creates a new `Future[S]` which is completed with this `Future`'s result if
+ *  that conforms to `S`'s erased type or a `ClassCastException` otherwise.
+ */
+def mapTo[S](implicit tag: ClassTag[S]): Future[S] = {
+  implicit val ec = internalExecutor
+  val boxedClass = {
+    val c = tag.runtimeClass
+    if (c.isPrimitive) Future.toBoxed(c) else c
+  }
+  require(boxedClass ne null)
+  map(s => boxedClass.cast(s).asInstanceOf[S])
+}
+----
+単純なキャストを行うメソッドのようだが、用途がいまいちピンとこないためソースコードコメントを翻訳してみたのが、以下である。
+
+****
+それはSの消去されたタイプまたはそうでなければ `ClassCastException` に準拠している場合、
+この`Future`の結果で終了した新しい `Future[S]` を作成します。
+****
+
+----
+// String => Char　普通に例外になる。
+scala> val f = Future { "JPY" }
+f: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@7402c49f
+
+scala> val result = f.mapTo[Char]
+result: scala.concurrent.Future[Char] = scala.concurrent.impl.Promise$DefaultPromise@7c47e077
+
+scala> result.value
+res1: Option[scala.util.Try[Char]] = Some(Failure(java.lang.ClassCastException: Cannot cast java.lang.String to java.lang.Character))
+
+scala> result.value.get
+res2: scala.util.Try[Char] = Failure(java.lang.ClassCastException: Cannot cast java.lang.String to java.lang.Character)
+----
+`Future[+T]` は共変footnote:[コップ本を参照のこと。] なので、単純なキャストを行うためのメソッドではないのかもしれない。 +
+ということで、本書ではここまで。
+
+
+=== andThen
+
+.Future#andThen
+
+[source, scala, linenums]
+----
+/** Applies the side-effecting function to the result of this future, and returns
+ *  a new future with the result of this future.
+ *
+ *  This method allows one to enforce that the callbacks are executed in a
+ *  specified order.
+ *
+ *  Note that if one of the chained `andThen` callbacks throws
+ *  an exception, that exception is not propagated to the subsequent `andThen`
+ *  callbacks. Instead, the subsequent `andThen` callbacks are given the original
+ *  value of this future.
+ *
+ *  The following example prints out `5`:
+ *
+ *  {{{
+ *  val f = future { 5 }
+ *  f andThen {
+ *    case r => sys.error("runtime exception")
+ *  } andThen {
+ *    case Failure(t) => println(t)
+ *    case Success(v) => println(v)
+ *  }
+ *  }}}
+ */
+def andThen[U](pf: PartialFunction[Try[T], U])(implicit executor: ExecutionContext): Future[T] = {
+  val p = Promise[T]()
+  onComplete {
+    case r => try pf.applyOrElse[Try[T], Any](r, Predef.conforms[Try[T]]) finally p complete r
+  }
+  p.future
+}
+----
+try-finally構文になっている。PartialFunctionをチェーンしていくイメージのメソッドである。コメントを翻訳してみる。 +
+
+****
+`this future` の結果に副作用関数を適用し、 `this future` の結果と `new future` を返します。
+この方法は1つがコールバックが指定された順序で実行されることを強制することができます。
+連鎖し `andThen` のコールバックの1つが例外をスローした場合、その例外は、後続 `andThen` のコールバックに伝播されていないことに注意してください。
+その代わりに、それに続く `andThen` コールバックは、 `this future` の元の値が与えられています。
+****
+
+やってみる。
+----
+scala> val f = Future.successful(17)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$KeptPromise@20a4cba7
+
+scala> val result = f.andThen{ case x: Try[Int] => println(x.get +2) }.andThen{ case x: Try[Int] => println(x.get + 4) }
+19
+21
+result: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@2f3c7b24
+
+scala> val result2 = Await.result(result, Duration.Zero)
+result2: Int = 17
+----
+よく考えて使う必要がありそうなメソッドである。
+
+=== object Future
+- コンパニオンオブジェクトに定義されているメソッドをみていく。 +
+[green]_TBD_
+
+'''

@@ -38,4 +38,6 @@ image:http://ecx.images-amazon.com/images/I/71S-49c4eZL.jpg[Scalaスケーラブ
 include::scala/2_Option/readme.adoc[]
 include::scala/3_Future/readme_01.adoc[]
 include::scala/3_Future/readme_02.adoc[]
+include::scala/3_Future/readme_03.adoc[]
+include::scala/3_Future/readme_04.adoc[]
 include::scala/4_Collection/readme.adoc[]
