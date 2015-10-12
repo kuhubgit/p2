@@ -1,5 +1,216 @@
-=== for内包表記いろいろ
-[green]_TBD_
+=== for内包表記(for comprehension)
+- http://www.scala-lang.org/files/archive/spec/2.11/06-expressions.html#for-comprehensions-and-for-loops[公式ドキュメント, window="_blank"]
+は難しく感じるかもしれない。 +
+----
+Expr1          ::=  `for' (`(' Enumerators `)' | `{' Enumerators `}')
+                       {nl} [`yield'] Expr
+Enumerators    ::=  Generator {semi Generator}
+Generator      ::=  Pattern1 `<-' Expr {[semi] Guard | semi Pattern1 `=' Expr}
+Guard          ::=  `if' PostfixExpr
+----
+こんなような式の定義が書かれているよ。
+なので、簡単に日本語で説明したい。
+
+以下の一文のみ原文で掲載しておく。
+
+[quote, For Comprehensions and For Loops]
+The translation scheme is as follows.
+「（for内包表記）の変換スキームは次のようになる。」と訳せます。
+
+. p < - e
+
+    p <- e.withFilter { case p => true; case _ => false }
+
+. for (p < - e) yield e′
+
+    e.map { case p => e′ }
+
+. for (p < - e) e′
+
+    e.foreach { case p => e′ }
+
+. for (p < - e; p′ < - e′;…) yield e″
+
+    e.flatMap { case p => for (p′ <- e′;…) yield e″ }
+
+. A generator p <- e followed by a guard if g is translated to a single generator p <- e.withFilter((x1,…,xn) => g) where x1,…,xn are the free variables of p. +
+A generator p <- e followed by a value definition p′ = e′ is translated to the following generator of pairs of values, where x and x′ are fresh names:
+
+    (p, p′) <- for (x@p <- e) yield { val x′@p′ = e′; (x, x′) }
+
+- どうだろうか。5 については説明しかねるので、原文をそのままのせている。1 ~ 4 については以下でFutureを使ってに詳細を追っていきたい。 +
+2 ~ 4 についてはすべての内包表記がなくなるまで、繰り返し適用される。
+- まずは公式サイトのExampleを見てみよう。
+
+.Example
+[source, scala]
+----
+for  { i <- 1 until n
+       j <- 1 until i
+       if isPrime(i+j) (←if guard)
+} yield (i, j)
+----
+The for comprehension is translated to:
+[source, scala]
+----
+(1 until n)
+  .flatMap {
+     case i => (1 until i)
+       .withFilter { j => isPrime(i+j) }
+       .map { case j => (i, j) } }
+----
+[quote, For Comprehensions and For Loops（日本語訳）]
+eが変数バインドを制限するboolean式( `if` )が含まれている場合は（バインドを）ガードする。 +
+generatorsとguardsはmap、withFilter、flatMap、およびforeachの4つのメソッドの呼び出しに変換することによって定義される。 +
+
+'''
+
+- さて、まずは簡単なものからみていきたい。
+[square]
+* for (p < - e) yield e′
+
+[source, scala, linenums]
+----
+scala> val e = Future(1100)
+e: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@6d4b1c02
+
+scala> val result = for(p <- e) yield e'
+<console>:1: error: unclosed character literal
+       val result = for(p <- e) yield e'
+                                       ^
+
+scala> val result = for(p <- e) yield p
+result: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@382db087
+----
+そのまま貼り付けて実行すると、e'がないといわれてエラーになる。 +
+とりあえず、e'をpとすると実行できる。 resultは `Future(1100)` である。+
+` e.map { case p => e′ }` へ変換されていることを思い出すと、必ずしもpでなくても良さそうである。
+
+----
+scala> val result2 = for(p <- e) yield 1080
+result2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@53bd8fca
+
+scala> Await.result(result2, Duration.Inf)
+res5: Int = 1080
+----
+`Future#map` の定義を思い出すと　`def map[S](f: T => S)(implicit executor: ExecutionContext): Future[S]` のようになっているため、 +
+` e.map { case p => e′ }` の e'はこの場合、1080となり result2は `Future(1080)` である。
+
+- 次はこちらをやってみよう。
+[square]
+* for (p < - e) e′ +
+
+`e.foreach { case p => e′ }` foreachに変換されるため、戻り型は `Unit` である。printlnを使って確認してみる。
+
+----
+scala> val e = Seq(1,2,3)
+e: Seq[Int] = List(1, 2, 3)
+
+scala> for( p <- e )(println(p))
+1
+2
+3
+----
+ifのガードを入れてみる。
+----
+scala> for( p <- e; if e.length == 2)(println(p))
+(No Print)
+scala>
+----
+雰囲気はつかめただろうか。副作用と伴うJavaなどの手続き型言語のfor-loopの処理を行う場合に使えそうであるが、 +
+Scalaでは使い所があるのだろうか。
+
+- 最後はこちら。もっともよく使われるであろう形。
+* for (p < - e; p′ < - e′;…) yield e″ +
+
+2重ループならflatMapとmapに分解できて、理解もしやすいので試してみる。
+
+----
+scala> val e1 = Future { 220 }
+e1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@3be4fcc0
+
+scala> val e2 = Future { 260 }
+e2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@2cc04358
+
+scala> for( p1 <- e1; p2 <- e2) yield( p1,p2 )
+res8: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2eeb0f9b
+
+// 公式サイトのとおり、変換する。（ひたむきに）
+scala> e1.flatMap{ case p1 => for(p2 <- e2) yield( p1,p2 ) }
+res9: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2cd4e16a
+// （ひたむきに）
+scala> e1.flatMap{ case p1 => e2.map( p2 => ( p1, p2 ) ) }
+res10: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@413d1baf
+
+----
+どうも、変換できているようだ。ともに `Future(220,260)` である。 +
+これでは簡単すぎるので、もう少し手をいれたい。ifでガードしてみる。
+
+----
+scala> for( p1 <- e1; if p1 == 230; p2 <- e2 ) yield(p1, p2)
+res11: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@79be91eb
+
+scala> val result2 = for( p1 <- e1; if p1 == 230; p2 <- e2 ) yield(p1, p2)
+result2: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2ab9e43e
+
+scala> Await.result(result2, Duration.Inf)
+java.util.NoSuchElementException: Future.filter predicate is not satisfied
+  at scala.concurrent.Future$$anonfun$filter$1.apply(Future.scala:278)
+  at scala.util.Success$$anonfun$map$1.apply(Try.scala:236)
+  at scala.util.Try$.apply(Try.scala:191)
+  at scala.util.Success.map(Try.scala:236)
+  at scala.concurrent.Future$$anonfun$map$1.apply(Future.scala:235)
+  at scala.concurrent.Future$$anonfun$map$1.apply(Future.scala:235)
+  at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:32)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)
+----
+ifでguardして、p2 < - e2が実行されていないのか、Await.resultで結果を取得しようとすると `NoSuchElementException` が発生する。 +
+
+----
+scala> val result2 = for( p1 <- e1; if p1 == 220; p2 <- e2 ) yield(p1,p2)
+result2: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2d593b56
+
+scala> Await.result(result2, Duration.Inf)
+res14: (Int, Int) = (220,260)
+----
+ifのguardがtrueの場合、例外は発生しない。 +
+さきほどのスタックトレースをみると、以下のとおりなので もう一度 `Future` のソースコードに戻る。 +
+----
+java.util.NoSuchElementException: Future.filter predicate is not satisfied
+  at scala.concurrent.Future$$anonfun$filter$1.apply(Future.scala:278)
+----
+
+.Future.scala:278
+[source, scala]
+----
+/** Creates a new future by filtering the value of the current future with a predicate.
+ *
+ *  If the current future contains a value which satisfies the predicate, the new future will also hold that value.
+ *  Otherwise, the resulting future will fail with a `NoSuchElementException`.
+ *
+ *  If the current future fails, then the resulting future also fails.
+ *
+ *  Example:
+ *  {{{
+ *  val f = future { 5 }
+ *  val g = f filter { _ % 2 == 1 }
+ *  val h = f filter { _ % 2 == 0 }
+ *  Await.result(g, Duration.Zero) // evaluates to 5
+ *  Await.result(h, Duration.Zero) // throw a NoSuchElementException
+ *  }}}
+ */
+def filter(pred: T => Boolean)(implicit executor: ExecutionContext): Future[T] =
+  map {
+    r => if (pred(r)) r else throw new NoSuchElementException("Future.filter predicate is not satisfied") // 278行目
+  }
+----
+さきほどのif guardではFuture#filterが呼び出されており、`NoSuchElementException` が `throw` されていることがスタックトレースから読み取れる。
+
+- ifのguardがどのメソッドを呼び出すかは、タイプ（型）の実装による。footnote:[公式サイトを参照のこと。]
 
 === Akka Actor
 [green]_TBD_

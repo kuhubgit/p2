@@ -453,7 +453,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_zip_mapto">2.2.5. zip, mapTo</a></li>
 <li><a href="#_andthen">2.2.6. andThen</a></li>
 <li><a href="#_object_future">2.2.7. object Future</a></li>
-<li><a href="#_for内包表記いろいろ">2.2.8. for内包表記いろいろ</a></li>
+<li><a href="#_for内包表記_for_comprehension">2.2.8. for内包表記(for comprehension)</a></li>
 <li><a href="#_akka_actor">2.2.9. Akka Actor</a></li>
 </ul>
 </li>
@@ -2669,9 +2669,345 @@ result2: Int = 17</pre>
 <hr>
 </div>
 <div class="sect3">
-<h4 id="_for内包表記いろいろ">2.2.8. for内包表記いろいろ</h4>
+<h4 id="_for内包表記_for_comprehension">2.2.8. for内包表記(for comprehension)</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.scala-lang.org/files/archive/spec/2.11/06-expressions.html#for-comprehensions-and-for-loops" target="_blank">公式ドキュメント</a>
+は難しく感じるかもしれない。<br></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Expr1          ::=  `for' (`(' Enumerators `)' | `{' Enumerators `}')
+                       {nl} [`yield'] Expr
+Enumerators    ::=  Generator {semi Generator}
+Generator      ::=  Pattern1 `&lt;-' Expr {[semi] Guard | semi Pattern1 `=' Expr}
+Guard          ::=  `if' PostfixExpr</pre>
+</div>
+</div>
 <div class="paragraph">
-<p><em class="green">TBD</em></p>
+<p>こんなような式の定義が書かれているよ。
+なので、簡単に日本語で説明したい。</p>
+</div>
+<div class="paragraph">
+<p>以下の一文のみ原文で掲載しておく。</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+The translation scheme is as follows.
+「（for内包表記）の変換スキームは次のようになる。」と訳せます。
+</blockquote>
+<div class="attribution">
+&#8212; For Comprehensions and For Loops
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>p &lt; - e</p>
+<div class="literalblock">
+<div class="content">
+<pre>p &lt;- e.withFilter { case p =&gt; true; case _ =&gt; false }</pre>
+</div>
+</div>
+</li>
+<li>
+<p>for (p &lt; - e) yield e′</p>
+<div class="literalblock">
+<div class="content">
+<pre>e.map { case p =&gt; e′ }</pre>
+</div>
+</div>
+</li>
+<li>
+<p>for (p &lt; - e) e′</p>
+<div class="literalblock">
+<div class="content">
+<pre>e.foreach { case p =&gt; e′ }</pre>
+</div>
+</div>
+</li>
+<li>
+<p>for (p &lt; - e; p′ &lt; - e′;…) yield e″</p>
+<div class="literalblock">
+<div class="content">
+<pre>e.flatMap { case p =&gt; for (p′ &lt;- e′;…) yield e″ }</pre>
+</div>
+</div>
+</li>
+<li>
+<p>A generator p &#8592; e followed by a guard if g is translated to a single generator p &#8592; e.withFilter((x1,…,xn) &#8658; g) where x1,…,xn are the free variables of p.<br>
+A generator p &#8592; e followed by a value definition p′ = e′ is translated to the following generator of pairs of values, where x and x′ are fresh names:</p>
+<div class="literalblock">
+<div class="content">
+<pre>(p, p′) &lt;- for (x@p &lt;- e) yield { val x′@p′ = e′; (x, x′) }</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>どうだろうか。5 については説明しかねるので、原文をそのままのせている。1 ~ 4 については以下でFutureを使ってに詳細を追っていきたい。<br>
+2 ~ 4 についてはすべての内包表記がなくなるまで、繰り返し適用される。</p>
+</li>
+<li>
+<p>まずは公式サイトのExampleを見てみよう。</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">for</span>  <span style="color: #666666">{</span> i <span style="color: #008000; font-weight: bold">&lt;-</span> <span style="color: #666666">1</span> until n
+       j <span style="color: #008000; font-weight: bold">&lt;-</span> <span style="color: #666666">1</span> until i
+       <span style="color: #008000; font-weight: bold">if</span> isPrime<span style="color: #666666">(</span>i<span style="color: #666666">+</span>j<span style="color: #666666">)</span> <span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">←if</span> guard<span style="color: #666666">)</span>
+<span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">yield</span> <span style="color: #666666">(</span>i<span style="color: #666666">,</span> j<span style="color: #666666">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The for comprehension is translated to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #666666">(1</span> until n<span style="color: #666666">)</span>
+  <span style="color: #666666">.</span>flatMap <span style="color: #666666">{</span>
+     <span style="color: #008000; font-weight: bold">case</span> i <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(1</span> until i<span style="color: #666666">)</span>
+       <span style="color: #666666">.</span>withFilter <span style="color: #666666">{</span> j <span style="color: #008000; font-weight: bold">=&gt;</span> isPrime<span style="color: #666666">(</span>i<span style="color: #666666">+</span>j<span style="color: #666666">)</span> <span style="color: #666666">}</span>
+       <span style="color: #666666">.</span>map <span style="color: #666666">{</span> <span style="color: #008000; font-weight: bold">case</span> j <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(</span>i<span style="color: #666666">,</span> j<span style="color: #666666">)</span> <span style="color: #666666">}</span> <span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+eが変数バインドを制限するboolean式( <code>if</code> )が含まれている場合は（バインドを）ガードする。<br>
+generatorsとguardsはmap、withFilter、flatMap、およびforeachの4つのメソッドの呼び出しに変換することによって定義される。<br>
+</blockquote>
+<div class="attribution">
+&#8212; For Comprehensions and For Loops（日本語訳）
+</div>
+</div>
+<hr>
+<div class="ulist">
+<ul>
+<li>
+<p>さて、まずは簡単なものからみていきたい。</p>
+<div class="ulist square">
+<ul class="square">
+<li>
+<p>for (p &lt; - e) yield e′</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><table class="pyhltable"><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</div></td><td class="code">scala<span style="color: #666666">&gt;</span> <span style="color: #008000; font-weight: bold">val</span> e <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">(1100)</span>
+e<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">scala.concurrent.Future</span><span style="color: #666666">[</span><span style="color: #B00040">Int</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> scala<span style="color: #666666">.</span>concurrent<span style="color: #666666">.</span>impl<span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">Promise$DefaultPromise</span><span style="color: #008000; font-weight: bold">@</span><span style="color: #666666">6</span>d4b1c02
+
+scala<span style="color: #666666">&gt;</span> <span style="color: #008000; font-weight: bold">val</span> result <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">for</span><span style="color: #666666">(</span>p <span style="color: #008000; font-weight: bold">&lt;-</span> e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">yield</span> e<span style="border: 1px solid #FF0000">&#39;</span>
+<span style="color: #666666">&lt;</span>console<span style="color: #008000; font-weight: bold">&gt;:</span><span style="color: #666666">1</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">error:</span> <span style="color: #B00040">unclosed</span> <span style="color: #B00040">character</span> <span style="color: #B00040">literal</span>
+       <span style="color: #008000; font-weight: bold">val</span> result <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">for</span><span style="color: #666666">(</span>p <span style="color: #008000; font-weight: bold">&lt;-</span> e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">yield</span> e<span style="border: 1px solid #FF0000">&#39;</span>
+                                       <span style="color: #666666">^</span>
+
+scala<span style="color: #666666">&gt;</span> <span style="color: #008000; font-weight: bold">val</span> result <span style="color: #008000; font-weight: bold">=</span> <span style="color: #008000; font-weight: bold">for</span><span style="color: #666666">(</span>p <span style="color: #008000; font-weight: bold">&lt;-</span> e<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">yield</span> p
+result<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">scala.concurrent.Future</span><span style="color: #666666">[</span><span style="color: #B00040">Int</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> scala<span style="color: #666666">.</span>concurrent<span style="color: #666666">.</span>impl<span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">Promise$DefaultPromise</span><span style="color: #008000; font-weight: bold">@</span><span style="color: #666666">382</span>db087
+</td></tr></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>そのまま貼り付けて実行すると、e&#8217;がないといわれてエラーになる。<br>
+とりあえず、e&#8217;をpとすると実行できる。 resultは <code>Future(1100)</code> である。+
+` e.map { case p &#8658; e′ }` へ変換されていることを思い出すと、必ずしもpでなくても良さそうである。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val result2 = for(p &lt;- e) yield 1080
+result2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@53bd8fca
+
+scala&gt; Await.result(result2, Duration.Inf)
+res5: Int = 1080</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Future#map</code> の定義を思い出すと　<code>def map[S](f: T &#8658; S)(implicit executor: ExecutionContext): Future[S]</code> のようになっているため、<br>
+` e.map { case p &#8658; e′ }` の e&#8217;はこの場合、1080となり result2は <code>Future(1080)</code> である。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>次はこちらをやってみよう。</p>
+<div class="ulist square">
+<ul class="square">
+<li>
+<p>for (p &lt; - e) e′<br></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>e.foreach { case p &#8658; e′ }</code> foreachに変換されるため、戻り型は <code>Unit</code> である。printlnを使って確認してみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val e = Seq(1,2,3)
+e: Seq[Int] = List(1, 2, 3)
+
+scala&gt; for( p &lt;- e )(println(p))
+1
+2
+3</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ifのガードを入れてみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; for( p &lt;- e; if e.length == 2)(println(p))
+(No Print)
+scala&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>雰囲気はつかめただろうか。副作用と伴うJavaなどの手続き型言語のfor-loopの処理を行う場合に使えそうであるが、<br>
+Scalaでは使い所があるのだろうか。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>最後はこちら。もっともよく使われるであろう形。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>for (p &lt; - e; p′ &lt; - e′;…) yield e″<br></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>2重ループならflatMapとmapに分解できて、理解もしやすいので試してみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val e1 = Future { 220 }
+e1: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@3be4fcc0
+
+scala&gt; val e2 = Future { 260 }
+e2: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@2cc04358
+
+scala&gt; for( p1 &lt;- e1; p2 &lt;- e2) yield( p1,p2 )
+res8: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2eeb0f9b
+
+// 公式サイトのとおり、変換する。（ひたむきに）
+scala&gt; e1.flatMap{ case p1 =&gt; for(p2 &lt;- e2) yield( p1,p2 ) }
+res9: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2cd4e16a
+// （ひたむきに）
+scala&gt; e1.flatMap{ case p1 =&gt; e2.map( p2 =&gt; ( p1, p2 ) ) }
+res10: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@413d1baf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>どうも、変換できているようだ。ともに <code>Future(220,260)</code> である。<br>
+これでは簡単すぎるので、もう少し手をいれたい。ifでガードしてみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; for( p1 &lt;- e1; if p1 == 230; p2 &lt;- e2 ) yield(p1, p2)
+res11: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@79be91eb
+
+scala&gt; val result2 = for( p1 &lt;- e1; if p1 == 230; p2 &lt;- e2 ) yield(p1, p2)
+result2: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2ab9e43e
+
+scala&gt; Await.result(result2, Duration.Inf)
+java.util.NoSuchElementException: Future.filter predicate is not satisfied
+  at scala.concurrent.Future$$anonfun$filter$1.apply(Future.scala:278)
+  at scala.util.Success$$anonfun$map$1.apply(Try.scala:236)
+  at scala.util.Try$.apply(Try.scala:191)
+  at scala.util.Success.map(Try.scala:236)
+  at scala.concurrent.Future$$anonfun$map$1.apply(Future.scala:235)
+  at scala.concurrent.Future$$anonfun$map$1.apply(Future.scala:235)
+  at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:32)
+  at scala.concurrent.impl.ExecutionContextImpl$AdaptedForkJoinTask.exec(ExecutionContextImpl.scala:121)
+  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)
+  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)
+  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)
+  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ifでguardして、p2 &lt; - e2が実行されていないのか、Await.resultで結果を取得しようとすると <code>NoSuchElementException</code> が発生する。<br></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val result2 = for( p1 &lt;- e1; if p1 == 220; p2 &lt;- e2 ) yield(p1,p2)
+result2: scala.concurrent.Future[(Int, Int)] = scala.concurrent.impl.Promise$DefaultPromise@2d593b56
+
+scala&gt; Await.result(result2, Duration.Inf)
+res14: (Int, Int) = (220,260)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ifのguardがtrueの場合、例外は発生しない。<br>
+さきほどのスタックトレースをみると、以下のとおりなので もう一度 <code>Future</code> のソースコードに戻る。<br></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>java.util.NoSuchElementException: Future.filter predicate is not satisfied
+  at scala.concurrent.Future$$anonfun$filter$1.apply(Future.scala:278)</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Future.scala:278</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/** Creates a new future by filtering the value of the current future with a predicate.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If the current future contains a value which satisfies the predicate, the new future will also hold that value.</span>
+<span style="color: #408080; font-style: italic"> *  Otherwise, the resulting future will fail with a `NoSuchElementException`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  If the current future fails, then the resulting future also fails.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> *  Example:</span>
+<span style="color: #408080; font-style: italic"> *  {{{</span>
+<span style="color: #408080; font-style: italic"> *  val f = future { 5 }</span>
+<span style="color: #408080; font-style: italic"> *  val g = f filter { _ % 2 == 1 }</span>
+<span style="color: #408080; font-style: italic"> *  val h = f filter { _ % 2 == 0 }</span>
+<span style="color: #408080; font-style: italic"> *  Await.result(g, Duration.Zero) // evaluates to 5</span>
+<span style="color: #408080; font-style: italic"> *  Await.result(h, Duration.Zero) // throw a NoSuchElementException</span>
+<span style="color: #408080; font-style: italic"> *  }}}</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> filter<span style="color: #666666">(</span>pred<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T</span> <span style="color: #666666">=&gt;</span> <span style="color: #0000FF; font-weight: bold">Boolean</span><span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> executor<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ExecutionContext</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">T</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span>
+  map <span style="color: #666666">{</span>
+    r <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">(</span>pred<span style="color: #666666">(</span>r<span style="color: #666666">))</span> r <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">NoSuchElementException</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;Future.filter predicate is not satisfied&quot;</span><span style="color: #666666">)</span> <span style="color: #408080; font-style: italic">// 278行目</span>
+  <span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>さきほどのif guardではFuture#filterが呼び出されており、<code>NoSuchElementException</code> が <code>throw</code> されていることがスタックトレースから読み取れる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ifのguardがどのメソッドを呼び出すかは、タイプ（型）の実装による。<span class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnote_9" title="View footnote.">9</a>]</span></p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
@@ -2734,11 +3070,14 @@ result2: Int = 17</pre>
 <div class="footnote" id="_footnote_8">
 <a href="#_footnoteref_8">8</a>. コップ本を参照のこと。
 </div>
+<div class="footnote" id="_footnote_9">
+<a href="#_footnoteref_9">9</a>. 公式サイトを参照のこと。
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-09-27 23:10:00 JST
+Last updated 2015-10-12 18:43:14 JST
 </div>
 </div>
 </body>
