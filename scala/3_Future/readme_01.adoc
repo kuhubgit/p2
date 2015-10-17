@@ -110,7 +110,7 @@ def createExecutorService: ExecutorService = {
 ----
 CAUTION: ExecutorServiceやForkJoinPoolなどJavaでおなじみのインターフェースやクラスで実装されていることがわかる。
 
-=== onSuccess,onFailure
+=== onSuccess/ onFailure
 .Future#onSuccess
 
 [source, scala, linenums]

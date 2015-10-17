@@ -1,4 +1,4 @@
-=== zip, mapTo
+=== zip/ mapTo
 
 - まずはzipから。
 
@@ -194,6 +194,221 @@ result2: Int = 17
 
 === object Future
 - コンパニオンオブジェクトに定義されているメソッドをみていく。 +
-[green]_TBD_
+
+.Future#apply
+[source, scala, linenums]
+----
+/** Starts an asynchronous computation and returns a `Future` object with the result of that computation.
+*
+*  The result becomes available once the asynchronous computation is completed.
+*
+*  @tparam T       the type of the result
+*  @param body     the asynchronous computation
+*  @param executor  the execution context on which the future is run
+*  @return         the `Future` holding the result of the computation
+*/
+def apply[T](body: =>T)(implicit @deprecatedName('execctx) executor: ExecutionContext): Future[T] = impl.Future(body)
+----
+applyはこれまでも暗黙的に使ってきたが、改めて定義を見てみると引数が `=>T` となっている。これは `()=>T` と同義である。
+
+----
+scala> val f = Future.apply("future is not promise")
+f: scala.concurrent.Future[String] = scala.concurrent.impl.Promise$DefaultPromise@27efef64
+----
+
+.Future#sequence
+[source, scala, linenums]
+----
+/** Simple version of `Future.traverse`. Transforms a `TraversableOnce[Future[A]]` into a `Future[TraversableOnce[A]]`.
+ *  Useful for reducing many `Future`s into a single `Future`.
+ */
+def sequence[A, M[X] <: TraversableOnce[X]](in: M[Future[A]])(implicit cbf: CanBuildFrom[M[Future[A]], A, M[A]], executor: ExecutionContext): Future[M[A]] = {
+  in.foldLeft(successful(cbf(in))) {
+    (fr, fa) => for (r <- fr; a <- fa) yield (r += a)
+  } map (_.result())
+}
+----
+sequenceメソッドの実装は少し難しい。 `Traversable` というキーワードが出てきた。 +
+ここではコメントの2行目にある reducing many `Future` s into a single `Future` を実践してみたい。 +
+
+----
+scala> val futures: List[Future[Int]] = List(1,2,3).map { i => Future(i) } // many `Future`s
+futures: List[scala.concurrent.Future[Int]] = List(scala.concurrent.impl.Promise$DefaultPromise@376a312c, scala.concurrent.impl.Promise$DefaultPromise@28d6290, scala.concurrent.impl.Promise$DefaultPromise@6ca0256d)
+
+scala> val f = Future.sequence(futures) // a single `Future`
+f: scala.concurrent.Future[List[Int]] = scala.concurrent.impl.Promise$DefaultPromise@1f1cae23
+
+scala> val result = Await.result(f, Duration.Inf) // futures execute
+result: List[Int] = List(1, 2, 3)
+----
+
+.Future#firstCompletedOf
+[source, scala, linenums]
+----
+/** Returns a new `Future` to the result of the first future in the list that is completed.
+ */
+def firstCompletedOf[T](futures: TraversableOnce[Future[T]])(implicit executor: ExecutionContext): Future[T] = {
+  val p = Promise[T]()
+  val completeFirst: Try[T] => Unit = p tryComplete _
+  futures foreach { _ onComplete completeFirst }
+  p.future
+}
+----
+使うのは簡単そうである。メソッド名から結果が予想できる。
+
+----
+scala> val f = Future.firstCompletedOf(futures)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@66de00f2
+
+scala> val result = Await.result(f, Duration.Inf)
+result: Int = 1
+----
+
+.Future#find
+[source, scala, linenums]
+----
+/** Returns a `Future` that will hold the optional result of the first `Future` with a result that matches the predicate.
+ */
+def find[T](@deprecatedName('futurestravonce) futures: TraversableOnce[Future[T]])(@deprecatedName('predicate) p: T => Boolean)(implicit executor: ExecutionContext): Future[Option[T]] = {
+  val futuresBuffer = futures.toBuffer
+  if (futuresBuffer.isEmpty) successful[Option[T]](None)
+  else {
+    val result = Promise[Option[T]]()
+    val ref = new AtomicInteger(futuresBuffer.size)
+    val search: Try[T] => Unit = v => try {
+      v match {
+        case Success(r) if p(r) => result tryComplete Success(Some(r))
+        case _ =>
+      }
+    } finally {
+      if (ref.decrementAndGet == 0) {
+        result tryComplete Success(None)
+      }
+    }
+
+    futuresBuffer.foreach(_ onComplete search)
+
+    result.future
+  }
+}
+----
+`Future[T]` ではなく、 `Future[Option[T]]` が返却されることに注意したい。 `val result = Promise[Option[T]]()` である。
+
+----
+scala> val f = Future.find(futures)(_/3 == 1)
+f: scala.concurrent.Future[Option[Int]] = scala.concurrent.impl.Promise$DefaultPromise@7fe07361
+
+scala> val result = Await.result(f, Duration.Inf)
+result: Option[Int] = Some(3)
+----
+
+.Future#fold
+[source, scala, linenums]
+----
+/** A non-blocking fold over the specified futures, with the start value of the given zero.
+ *  The fold is performed on the thread where the last future is completed,
+ *  the result will be the first failure of any of the futures, or any failure in the actual fold,
+ *  or the result of the fold.
+ *
+ *  Example:
+ *  {{{
+ *    val result = Await.result(Future.fold(futures)(0)(_ + _), 5 seconds)
+ *  }}}
+ */
+def fold[T, R](futures: TraversableOnce[Future[T]])(zero: R)(@deprecatedName('foldFun) op: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
+  if (futures.isEmpty) successful(zero)
+  else sequence(futures).map(_.foldLeft(zero)(op))
+}
+----
+sequenceメソッドを実行後にmap, foldLeft(左畳み込み)を実装している。引数は3つである。 +
+`if (futures.isEmpty) successful(zero)` に注目したい。 トラバース可能な `Future` s として 空っぽの変数が渡されたとしても successful(zero) を返却する。
+
+----
+// Futureを左畳み込み
+scala> val f = Future.fold(futures)(100)(_*_)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@47a3d56a
+
+scala> val result = Await.result(f, Duration.Inf)
+result: Int = 600
+
+// 空のFutureリスト
+scala> val emptyFutures: List[Future[Int]] = Nil
+emptyFutures: List[scala.concurrent.Future[Int]] = List()
+
+scala> val f = Future.fold(emptyFutures)(100)(_*_)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$KeptPromise@41a8f0d8
+
+// 初期値(この場合は100)を返却
+scala> val result = Await.result(f, Duration.Inf)
+result: Int = 100
+----
+
+.Future#reduce
+[source, scala, linenums]
+----
+/** Initiates a fold over the supplied futures where the fold-zero is the result value of the `Future` that's completed first.
+ *
+ *  Example:
+ *  {{{
+ *    val result = Await.result(Future.reduce(futures)(_ + _), 5 seconds)
+ *  }}}
+ */
+def reduce[T, R >: T](futures: TraversableOnce[Future[T]])(op: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
+  if (futures.isEmpty) failed(new NoSuchElementException("reduce attempted on empty collection"))
+  else sequence(futures).map(_ reduceLeft op)
+}
+----
+sequenceメソッドを実行後にmap, reduceLeft(左畳み込み)を実装している。引数は2つである。 +
+`if (futures.isEmpty) failed(new NoSuchElementException("reduce attempted on empty collection"))` に注目したい。 foldと違って、空っぽの変数が渡されたら例外が発生する。
+
+----
+// Futureを左畳み込み（初期値なし）
+scala> val f = Future.reduce(futures)(_*_)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$DefaultPromise@fe156f4
+
+scala> val result = Await.result(f, Duration.Inf)
+result: Int = 6
+
+scala> val f = Future.reduce(emptyFutures)(_*_)
+f: scala.concurrent.Future[Int] = scala.concurrent.impl.Promise$KeptPromise@57a0c261
+
+scala> val result = Await.result(f, Duration.Inf)
+java.util.NoSuchElementException: reduce attempted on empty collection
+  at scala.concurrent.Future$.reduce(Future.scala:560)
+  ... 33 elided
+----
+
+.Future#traverse
+[source, scala, linenums]
+----
+/** Transforms a `TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using the provided function `A => Future[B]`.
+ *  This is useful for performing a parallel map. For example, to apply a function to all items of a list
+ *  in parallel:
+ *
+ *  {{{
+ *    val myFutureList = Future.traverse(myList)(x => Future(myFunc(x)))
+ *  }}}
+ */
+def traverse[A, B, M[X] <: TraversableOnce[X]](in: M[A])(fn: A => Future[B])(implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
+  in.foldLeft(successful(cbf(in))) { (fr, a) =>
+    val fb = fn(a)
+    for (r <- fr; b <- fb) yield (r += b)
+  }.map(_.result())
+----
+Exampleがコメントに書かれているのがありがたい。 +
+`TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using the provided function `A => Future[B]` が全てを言い表している。 +
+先ほどみてきた `Future.sequence` のコメントにあったように、 sequenceメソッドは traverseの簡易版ということになる。
+
+----
+// 複数のfutureを生成して、単一のFutureを返却
+scala> val f = Future.traverse((1 to 3).toList)(x => Future(x))
+f: scala.concurrent.Future[List[Int]] = scala.concurrent.impl.Promise$DefaultPromise@5058fefb
+
+scala> val result = Await.result(f, Duration.Inf)
+result: List[Int] = List(1, 2, 3)
+----
+
+ここまでで  `Future` のソースコードを中心にほぼ全てのメソッドをみてきた。 +
+`TraversableOnce` については別項で説明する。 +
 
 '''

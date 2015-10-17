@@ -1,4 +1,4 @@
-=== map, flatMap, collect
+=== map /flatMap/ collect
 - `Future` を作成し、それをいろいろな構文で値を取り出してみる。
 
 ----
@@ -174,7 +174,7 @@ fallbackToについては上に示した例のとおり比較的理解しやす�
 両方の `Future` が失敗した場合は 最初の `Future` で発生した失敗が返却されるようだ。 +
 `implicit val ec = internalExecutor` とあるように 内部の `Executor(callback)` を使用している点も注意したい。
 
-=== recover, recoverWith
+=== recover/ recoverWith
 recoverとrecoverWithの関係性は先ほど説明した `Try` 型で定義されているものと引数型の関係性は同様である。 +
 
 .Future#recover

@@ -8,14 +8,10 @@ Enumerators    ::=  Generator {semi Generator}
 Generator      ::=  Pattern1 `<-' Expr {[semi] Guard | semi Pattern1 `=' Expr}
 Guard          ::=  `if' PostfixExpr
 ----
-こんなような式の定義が書かれているよ。
-なので、簡単に日本語で説明したい。
-
-以下の一文のみ原文で掲載しておく。
+こんなような式の定義が書かれている。なので、簡単に日本語で説明したい。
 
 [quote, For Comprehensions and For Loops]
 The translation scheme is as follows.
-「（for内包表記）の変換スキームは次のようになる。」と訳せます。
 
 . p < - e
 
@@ -65,7 +61,7 @@ generatorsとguardsはmap、withFilter、flatMap、およびforeachの4つのメ
 
 '''
 
-- さて、まずは簡単なものからみていきたい。
+- さて、まずは簡単なものからやってみる。
 [square]
 * for (p < - e) yield e′
 
