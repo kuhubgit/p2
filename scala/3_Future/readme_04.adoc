@@ -209,6 +209,177 @@ def filter(pred: T => Boolean)(implicit executor: ExecutionContext): Future[T] =
 - ifのguardがどのメソッドを呼び出すかは、タイプ（型）の実装による。footnote:[公式サイトを参照のこと。]
 
 === Akka Actor
-[green]_TBD_
+
+****
+Scalaで非同期処理を行う際にFutureとともに利用されることの多い、Akka Actorライブラリについて以下の観点で簡単にまとめる。 +
+1. actorとは何か +
+2. Java並行計算ライブラリの問題点 +
+3. Akka Actorの構成
+4. tellとask +
+5. persistence +
+6. clustering +
+****
+詳細については http://akka.io/docs/[Akka Documentation, window="_blank"]を参照してほしい。
+
+. actorとは何か +
+actorの語源は並行計算の数学モデルである https://ja.wikipedia.org/wiki/%E3%82%A2%E3%82%AF%E3%82%BF%E3%83%BC%E3%83%A2%E3%83%87%E3%83%AB[アクターモデル, window="_blank"]
+の汎用的基本要素の概念であるアクターである。 +
+アクターモデルの基本は「全てのものはアクターである」という哲学である。 +
+アクターシステムとしてモデル化可能な最も理解しやすい例が電子メールであり、アカウントをアクター、メールアドレスをアクターのアドレスとする。 +
+(以上、wikipediaより抜粋) +
+
+. 既存の並行計算ライブラリの問題点と違い +
+- 従来のJava言語で考えてみると、スレッドセーフな実装の際に `synchronized` や `volatile` などを使うが、
+`synchronized` はオブジェクトをロックするため、排他制御が必要なる。 ロックするスコープについては細心の注意が必要である。
+`volatile`　は共有メモリと作業コピーの間で同期処理を行うが、言語仕様レベルのメモリーモデルの正確な理解が必要で、
+実装の難易度が非常に高くデバックは困難である。
+ただし最近では `ForkJoinPool(1.7)` や `CompletableFuture(1.8)` など非同期処理やサブタスクを扱える機能が提供されている。
+
+- 比較してアクターシステムにおける特徴を以下にまとめる。
+** 個々のアクターは独立しており、メモリや状態を共有することがない。 +
+** アクターモデルはキューイング機構（一度に一つのメッセージだけを処理する）を採用することにより、ロックを排除している。 +
+** メッセージは常に値のコピーであるため、参照渡しによる可変状態の共有を防ぎ、2つのクライアントが同じ変数に同時にアクセスする可能性もなくなる。 +
+** アクターベースのシステムではメソッドを外部に公開することが（必要が）ないため、完全にカプセル化されている。 +
+
+. Akka Actorの構成footnote:[http://doc.akka.io/docs/akka/2.4.0/general/addressing.html] +
+Akka Actorのソースコードを見ながら、Actorを構成している要素を整理していく。
+
+.akka.actor.Actor.context
+[source, scala]
+----
+/**
+ * Stores the context for this actor, including self, and sender.
+ * It is implicit to support operations such as `forward`.
+ *
+ * WARNING: Only valid within the Actor itself, so do not close over it and
+ * publish it to other threads!
+ *
+ * [[akka.actor.ActorContext]] is the Scala API. `getContext` returns a
+ * [[akka.actor.UntypedActorContext]], which is the Java API of the actor
+ * context.
+ */
+implicit val context: ActorContext = {
+  val contextStack = ActorCell.contextStack.get
+  if ((contextStack.isEmpty) || (contextStack.head eq null))
+    throw ActorInitializationException(
+      s"You cannot create an instance of [${getClass.getName}] explicitly using the constructor (new). " +
+        "You have to use one of the 'actorOf' factory methods to create a new actor. See the documentation.")
+  val c = contextStack.head
+  ActorCell.contextStack.set(null :: contextStack)
+  c
+}
+----
+ActorCell.contextStackは 実際は `java.lang.ThreadLocal` であるが、注目したいのは ActorInitializationExceptionが投げられる可能性があるということと、
+context（暗黙変数）がActorCellに依存していることである。
+
+.akka.actor.Actor.self
+[source, scala]
+----
+/**
+ * The 'self' field holds the ActorRef for this actor.
+ * <p/>
+ * Can be used to send messages to itself:
+ * <pre>
+ * self ! message
+ * </pre>
+ */
+implicit final val self = context.self //MUST BE A VAL, TRUST ME
+----
+selfは自分自身の参照である。とコメントには記述されている。 +
+つまり自分自身は `context.self` なのである。
+
+.akka.actor.ActorContext
+[source, scala]
+----
+/**
+ * The actor context - the view of the actor cell from the actor.
+ * Exposes contextual information for the actor and the current message.
+ *
+ * There are several possibilities for creating actors (see [[akka.actor.Props]]
+ * for details on `props`):
+ *
+ * {{{
+ * // Java or Scala
+ * context.actorOf(props, "name")
+ * context.actorOf(props)
+ *
+ * // Scala
+ * context.actorOf(Props[MyActor])
+ * context.actorOf(Props(classOf[MyActor], arg1, arg2), "name")
+ *
+ * // Java
+ * getContext().actorOf(Props.create(MyActor.class));
+ * getContext().actorOf(Props.create(MyActor.class, arg1, arg2), "name");
+ * }}}
+ *
+ * Where no name is given explicitly, one will be automatically generated.
+ */
+trait ActorContext extends ActorRefFactory {
+
+  def self: ActorRef
+
+  /**
+   * Retrieve the Props which were used to create this actor.
+   */
+  def props: Props
+
+  ...
+----
+コメントにある actorOfメソッドは `ActorRefFactory` で定義されているActor生成メソッドである。 +
+Actorに戻ろう。 +
+
+.akka.actor.Actor#sender()
+[source, scala]
+----
+/**
+ * The reference sender Actor of the last received message.
+ * Is defined if the message was sent from another Actor,
+ * else `deadLetters` in [[akka.actor.ActorSystem]].
+ *
+ * WARNING: Only valid within the Actor itself, so do not close over it and
+ * publish it to other threads!
+ */
+final def sender(): ActorRef = context.sender()
+----
+sender()は最後に自身が受け取ったメッセージの送信元のActorの参照を保持している。 +
+
+.akka.actor.Actor#receive
+[source, scala]
+----
+/**
+ * This defines the initial actor behavior, it must return a partial function
+ * with the actor logic.
+ */
+//#receive
+def receive: Actor.Receive
+//#receive
+----
+Actorの振る舞いを実装する唯一のメソッドで、戻り型が `Actor.Receive` となっている。 +
+`Actor.Receive` はコンパニオンブジェクトに以下のように定義されている。
+
+[source, scala]
+----
+type Receive = PartialFunction[Any, Unit]
+----
+
+ここまで見てきてActorが以下のような構成に成っているのがわかった。（ソースコードの全文は読者自身で確かめて欲しい。） +
+
+`Actor` は `ActorCell` から生成される `ActorContext(.context)` を保持しており .contextには自身への参照、送信元の参照、
+親子関係（parent, children, system)といった情報が設定されている。また、.contextは `ActorRefFactory` を継承しており
+ライフサイクルに関わる `actorOf` や　`stop` メソッドも参照することが可能である。 +
+`ActorRefFactory` は　`ActorRefProvider` の参照も保持している。（actorのproviderの種類については別項で説明する。）
+ActorのConfigurationについては `akka.actor.ActorSystem.Settings` に書かれているので、詳細を知りたい場合はそちらを確認することになるのだが、
+基本的には公式ドキュメントfootnote:[http://doc.akka.io/docs/akka/2.4.0/general/configuration.html]を参照すれば事足りるであろう。
+
+. tellとask +
+理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。
+
+- tell
+
+- ask
+
+. persistence +
+
+. clustering +
 
 '''

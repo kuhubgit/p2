@@ -438,7 +438,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_apply">2.1.1. apply</a></li>
 <li><a href="#_get">2.1.2. get</a></li>
-<li><a href="#_map_flatmap_fold">2.1.3. map,flatMap,fold</a></li>
+<li><a href="#_map_flatmap_fold">2.1.3. map/ flatMap/ fold</a></li>
 <li><a href="#_collect">2.1.4. collect</a></li>
 <li><a href="#_nullの扱い">2.1.5. nullの扱い</a></li>
 <li><a href="#_either">2.1.6. Either</a></li>
@@ -464,7 +464,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_seq">2.3.3. Seq</a></li>
 </ul>
 </li>
-<li><a href="#_関数型プログラミング">2.4. 関数型プログラミング</a>
+<li><a href="#_関数型デザインの構造">2.4. 関数型デザインの構造</a>
 <ul class="sectlevel3">
 <li><a href="#_モノイド_monoid">2.4.1. モノイド(Monoid)</a></li>
 <li><a href="#_モナド_monad">2.4.2. モナド(Monad)</a></li>
@@ -941,7 +941,7 @@ Option型を上手に使用するためのコツや、代表的な使用例を�
 </td>
 <td class="content">
 以降の章をスムーズに読み進めるために、ソースコードを確認できる環境を整えておくとよい。
-IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyseq"><kbd>Ctrl</kbd>+<kbd>N</kbd></span> (OSXの場合は<span class="keyseq"><kbd>Command</kbd>+<kbd>B</kbd></span>)で直接エディターで開いてみるのがよいだろう。
+IntellijIDEAで適当なScalaプロジェクトを開いて、<span class="keyseq"><kbd>Ctrl</kbd>+<kbd>N</kbd></span> (OSXの場合は<span class="keyseq"><kbd>Command</kbd>+<kbd>O</kbd></span>)で直接エディターで開いてみるのがよいだろう。
 </td>
 </tr>
 </table>
@@ -1100,7 +1100,7 @@ opt: Option[String] = Some(this is option type.)</pre>
 <hr>
 </div>
 <div class="sect3">
-<h4 id="_map_flatmap_fold">2.1.3. map,flatMap,fold</h4>
+<h4 id="_map_flatmap_fold">2.1.3. map/ flatMap/ fold</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -3341,8 +3341,233 @@ res14: (Int, Int) = (220,260)</pre>
 </div>
 <div class="sect3">
 <h4 id="_akka_actor">2.2.9. Akka Actor</h4>
+<div class="sidebarblock">
+<div class="content">
 <div class="paragraph">
-<p><em class="green">TBD</em></p>
+<p>Scalaで非同期処理を行う際にFutureとともに利用されることの多い、Akka Actorライブラリについて以下の観点で簡単にまとめる。<br>
+1. actorとは何か<br>
+2. Java並行計算ライブラリの問題点<br>
+3. Akka Actorの構成
+4. tellとask<br>
+5. persistence<br>
+6. clustering<br></p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>詳細については <a href="http://akka.io/docs/" target="_blank">Akka Documentation</a>を参照してほしい。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>actorとは何か<br>
+actorの語源は並行計算の数学モデルである <a href="https://ja.wikipedia.org/wiki/%E3%82%A2%E3%82%AF%E3%82%BF%E3%83%BC%E3%83%A2%E3%83%87%E3%83%AB" target="_blank">アクターモデル</a>
+の汎用的基本要素の概念であるアクターである。<br>
+アクターモデルの基本は「全てのものはアクターである」という哲学である。<br>
+アクターシステムとしてモデル化可能な最も理解しやすい例が電子メールであり、アカウントをアクター、メールアドレスをアクターのアドレスとする。<br>
+(以上、wikipediaより抜粋)<br></p>
+</li>
+<li>
+<p>既存の並行計算ライブラリの問題点と違い<br></p>
+<div class="ulist">
+<ul>
+<li>
+<p>従来のJava言語で考えてみると、スレッドセーフな実装の際に <code>synchronized</code> や <code>volatile</code> などを使うが、
+<code>synchronized</code> はオブジェクトをロックするため、排他制御が必要なる。 ロックするスコープについては細心の注意が必要である。
+<code>volatile</code>　は共有メモリと作業コピーの間で同期処理を行うが、言語仕様レベルのメモリーモデルの正確な理解が必要で、
+実装の難易度が非常に高くデバックは困難である。
+ただし最近では <code>ForkJoinPool(1.7)</code> や <code>CompletableFuture(1.8)</code> など非同期処理やサブタスクを扱える機能が提供されている。</p>
+</li>
+<li>
+<p>比較してアクターシステムにおける特徴を以下にまとめる。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>個々のアクターは独立しており、メモリや状態を共有することがない。<br></p>
+</li>
+<li>
+<p>アクターモデルはキューイング機構（一度に一つのメッセージだけを処理する）を採用することにより、ロックを排除している。<br></p>
+</li>
+<li>
+<p>メッセージは常に値のコピーであるため、参照渡しによる可変状態の共有を防ぎ、2つのクライアントが同じ変数に同時にアクセスする可能性もなくなる。<br></p>
+</li>
+<li>
+<p>アクターベースのシステムではメソッドを外部に公開することが（必要が）ないため、完全にカプセル化されている。<br></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Akka Actorの構成<span class="footnote">[<a id="_footnoteref_10" class="footnote" href="#_footnote_10" title="View footnote.">10</a>]</span><br>
+Akka Actorのソースコードを見ながら、Actorを構成している要素を整理していく。</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">akka.actor.Actor.context</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * Stores the context for this actor, including self, and sender.</span>
+<span style="color: #408080; font-style: italic"> * It is implicit to support operations such as `forward`.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * WARNING: Only valid within the Actor itself, so do not close over it and</span>
+<span style="color: #408080; font-style: italic"> * publish it to other threads!</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * [[akka.actor.ActorContext]] is the Scala API. `getContext` returns a</span>
+<span style="color: #408080; font-style: italic"> * [[akka.actor.UntypedActorContext]], which is the Java API of the actor</span>
+<span style="color: #408080; font-style: italic"> * context.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">val</span> context<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorContext</span> <span style="color: #666666">=</span> <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">val</span> contextStack <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">ActorCell</span><span style="color: #666666">.</span>contextStack<span style="color: #666666">.</span>get
+  <span style="color: #008000; font-weight: bold">if</span> <span style="color: #666666">((</span>contextStack<span style="color: #666666">.</span>isEmpty<span style="color: #666666">)</span> <span style="color: #666666">||</span> <span style="color: #666666">(</span>contextStack<span style="color: #666666">.</span>head eq <span style="color: #008000; font-weight: bold">null</span><span style="color: #666666">))</span>
+    <span style="color: #008000; font-weight: bold">throw</span> <span style="color: #0000FF; font-weight: bold">ActorInitializationException</span><span style="color: #666666">(</span>
+      s<span style="color: #BA2121">&quot;You cannot create an instance of [${getClass.getName}] explicitly using the constructor (new). &quot;</span> <span style="color: #666666">+</span>
+        <span style="color: #BA2121">&quot;You have to use one of the &#39;actorOf&#39; factory methods to create a new actor. See the documentation.&quot;</span><span style="color: #666666">)</span>
+  <span style="color: #008000; font-weight: bold">val</span> c <span style="color: #008000; font-weight: bold">=</span> contextStack<span style="color: #666666">.</span>head
+  <span style="color: #0000FF; font-weight: bold">ActorCell</span><span style="color: #666666">.</span>contextStack<span style="color: #666666">.</span>set<span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">null</span> <span style="color: #666666">::</span> contextStack<span style="color: #666666">)</span>
+  c
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ActorCell.contextStackは 実際は <code>java.lang.ThreadLocal</code> であるが、注目したいのは ActorInitializationExceptionが投げられる可能性があるということと、
+context（暗黙変数）がActorCellに依存していることである。</p>
+</div>
+<div class="listingblock">
+<div class="title">akka.actor.Actor.self</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * The &#39;self&#39; field holds the ActorRef for this actor.</span>
+<span style="color: #408080; font-style: italic"> * &lt;p/&gt;</span>
+<span style="color: #408080; font-style: italic"> * Can be used to send messages to itself:</span>
+<span style="color: #408080; font-style: italic"> * &lt;pre&gt;</span>
+<span style="color: #408080; font-style: italic"> * self ! message</span>
+<span style="color: #408080; font-style: italic"> * &lt;/pre&gt;</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">val</span> self <span style="color: #008000; font-weight: bold">=</span> context<span style="color: #666666">.</span>self <span style="color: #408080; font-style: italic">//MUST BE A VAL, TRUST ME</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>selfは自分自身の参照である。とコメントには記述されている。<br>
+つまり自分自身は <code>context.self</code> なのである。</p>
+</div>
+<div class="listingblock">
+<div class="title">akka.actor.ActorContext</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * The actor context - the view of the actor cell from the actor.</span>
+<span style="color: #408080; font-style: italic"> * Exposes contextual information for the actor and the current message.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * There are several possibilities for creating actors (see [[akka.actor.Props]]</span>
+<span style="color: #408080; font-style: italic"> * for details on `props`):</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * {{{</span>
+<span style="color: #408080; font-style: italic"> * // Java or Scala</span>
+<span style="color: #408080; font-style: italic"> * context.actorOf(props, &quot;name&quot;)</span>
+<span style="color: #408080; font-style: italic"> * context.actorOf(props)</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * // Scala</span>
+<span style="color: #408080; font-style: italic"> * context.actorOf(Props[MyActor])</span>
+<span style="color: #408080; font-style: italic"> * context.actorOf(Props(classOf[MyActor], arg1, arg2), &quot;name&quot;)</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * // Java</span>
+<span style="color: #408080; font-style: italic"> * getContext().actorOf(Props.create(MyActor.class));</span>
+<span style="color: #408080; font-style: italic"> * getContext().actorOf(Props.create(MyActor.class, arg1, arg2), &quot;name&quot;);</span>
+<span style="color: #408080; font-style: italic"> * }}}</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * Where no name is given explicitly, one will be automatically generated.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">trait</span> <span style="color: #0000FF; font-weight: bold">ActorContext</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">ActorRefFactory</span> <span style="color: #666666">{</span>
+
+  <span style="color: #008000; font-weight: bold">def</span> self<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span>
+
+  <span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic">   * Retrieve the Props which were used to create this actor.</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> props<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Props</span>
+
+  <span style="color: #666666">...</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>コメントにある actorOfメソッドは <code>ActorRefFactory</code> で定義されているActor生成メソッドである。<br>
+Actorに戻ろう。<br></p>
+</div>
+<div class="listingblock">
+<div class="title">akka.actor.Actor#sender()</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * The reference sender Actor of the last received message.</span>
+<span style="color: #408080; font-style: italic"> * Is defined if the message was sent from another Actor,</span>
+<span style="color: #408080; font-style: italic"> * else `deadLetters` in [[akka.actor.ActorSystem]].</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * WARNING: Only valid within the Actor itself, so do not close over it and</span>
+<span style="color: #408080; font-style: italic"> * publish it to other threads!</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> sender<span style="color: #666666">()</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span> <span style="color: #666666">=</span> context<span style="color: #666666">.</span>sender<span style="color: #666666">()</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>sender()は最後に自身が受け取ったメッセージの送信元のActorの参照を保持している。<br></p>
+</div>
+<div class="listingblock">
+<div class="title">akka.actor.Actor#receive</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * This defines the initial actor behavior, it must return a partial function</span>
+<span style="color: #408080; font-style: italic"> * with the actor logic.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #408080; font-style: italic">//#receive</span>
+<span style="color: #008000; font-weight: bold">def</span> receive<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Actor.Receive</span>
+<span style="color: #408080; font-style: italic">//#receive</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Actorの振る舞いを実装する唯一のメソッドで、戻り型が <code>Actor.Receive</code> となっている。<br>
+<code>Actor.Receive</code> はコンパニオンブジェクトに以下のように定義されている。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">type</span> <span style="color: #B00040">Receive</span> <span style="color: #666666">=</span> <span style="color: #0000FF; font-weight: bold">PartialFunction</span><span style="color: #666666">[</span><span style="color: #B00040">Any</span>, <span style="color: #B00040">Unit</span><span style="color: #666666">]</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ここまで見てきてActorが以下のような構成に成っているのがわかった。（ソースコードの全文は読者自身で確かめて欲しい。）<br></p>
+</div>
+<div class="paragraph">
+<p><code>Actor</code> は <code>ActorCell</code> から生成される <code>ActorContext(.context)</code> を保持しており .contextには自身への参照、送信元の参照、
+親子関係（parent, children, system)といった情報が設定されている。また、.contextは <code>ActorRefFactory</code> を継承しており
+ライフサイクルに関わる <code>actorOf</code> や　<code>stop</code> メソッドも参照することが可能である。<br>
+<code>ActorRefFactory</code> は　<code>ActorRefProvider</code> の参照も保持している。（actorのproviderの種類については別項で説明する。）
+ActorのConfigurationについては <code>akka.actor.ActorSystem.Settings</code> に書かれているので、詳細を知りたい場合はそちらを確認することになるのだが、
+基本的には公式ドキュメント<span class="footnote">[<a id="_footnoteref_11" class="footnote" href="#_footnote_11" title="View footnote.">11</a>]</span>を参照すれば事足りるであろう。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>tellとask<br>
+理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>tell</p>
+</li>
+<li>
+<p>ask</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>persistence<br></p>
+</li>
+<li>
+<p>clustering<br></p>
+</li>
+</ol>
 </div>
 <hr>
 </div>
@@ -3371,7 +3596,7 @@ res14: (Int, Int) = (220,260)</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_関数型プログラミング">2.4. 関数型プログラミング</h3>
+<h3 id="_関数型デザインの構造">2.4. 関数型デザインの構造</h3>
 <div class="sect3">
 <h4 id="_モノイド_monoid">2.4.1. モノイド(Monoid)</h4>
 
@@ -3424,6 +3649,12 @@ res14: (Int, Int) = (220,260)</pre>
 </div>
 <div class="footnote" id="_footnote_9">
 <a href="#_footnoteref_9">9</a>. 公式サイトを参照のこと。
+</div>
+<div class="footnote" id="_footnote_10">
+<a href="#_footnoteref_10">10</a>. <a href="http://doc.akka.io/docs/akka/2.4.0/general/addressing.html" class="bare">http://doc.akka.io/docs/akka/2.4.0/general/addressing.html</a>
+</div>
+<div class="footnote" id="_footnote_11">
+<a href="#_footnoteref_11">11</a>. <a href="http://doc.akka.io/docs/akka/2.4.0/general/configuration.html" class="bare">http://doc.akka.io/docs/akka/2.4.0/general/configuration.html</a>
 </div>
 </div>
 <div id="footer">
