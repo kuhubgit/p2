@@ -214,10 +214,8 @@ def filter(pred: T => Boolean)(implicit executor: ExecutionContext): Future[T] =
 Scalaで非同期処理を行う際にFutureとともに利用されることの多い、Akka Actorライブラリについて以下の観点で簡単にまとめる。 +
 1. actorとは何か +
 2. Java並行計算ライブラリの問題点 +
-3. Akka Actorの構成
+3. Akka Actorの構成 +
 4. tellとask +
-5. persistence +
-6. clustering +
 ****
 詳細については http://akka.io/docs/[Akka Documentation, window="_blank"]を参照してほしい。
 
@@ -372,14 +370,191 @@ ActorのConfigurationについては `akka.actor.ActorSystem.Settings` に書か
 基本的には公式ドキュメントfootnote:[http://doc.akka.io/docs/akka/2.4.0/general/configuration.html]を参照すれば事足りるであろう。
 
 . tellとask +
-理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。
+理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。 +
 
-- tell
+[square]
+- tellはメッセージを送信するメソッドである。 +
 
-- ask
+.ActorRef.scala
+[source, scala]
+----
+abstract class ActorRef extends java.lang.Comparable[ActorRef] with Serializable {
 
-. persistence +
+/**
+ * Sends the specified message to the sender, i.e. fire-and-forget
+ * semantics, including the sender reference if possible.
+ *
+ * Pass [[akka.actor.ActorRef$.noSender]] or `null` as sender if there is nobody to reply to
+ */
+final def tell(msg: Any, sender: ActorRef): Unit = this.!(msg)(sender)
+----
+tellの内部実装は `!` の呼び出しに変換されている。
 
-. clustering +
+.ScalaActorRef
+[source, scala]
+----
+trait ScalaActorRef { ref: ActorRef ⇒
+
+  /**
+   * Sends a one-way asynchronous message. E.g. fire-and-forget semantics.
+   * <p/>
+   *
+   * If invoked from within an actor then the actor reference is implicitly passed on as the implicit sender argument.
+   * <p/>
+   *
+   * This actor sender reference is then available in the receiving actor in the sender() member variable,
+   * if invoked from within an Actor. If not then no sender is available.
+   * <pre>
+   *   actor ! message
+   * </pre>
+   * <p/>
+   */
+  def !(message: Any)(implicit sender: ActorRef = Actor.noSender): Unit
+
+}
+----
+`!` ImplicitConversions(暗黙の型変換)を利用して呼び出されている。
+
+[source ,scala]
+----
+package akka
+
+import language.implicitConversions
+
+package object actor {
+  implicit def actorRef2Scala(ref: ActorRef): ScalaActorRef = ref.asInstanceOf[ScalaActorRef]
+  implicit def scala2ActorRef(ref: ScalaActorRef): ActorRef = ref.asInstanceOf[ActorRef]
+}
+----
+まわりくどくなったが、ようやくtellの実体が見えてきた。 `ScalaActorRef` のソースコードのコメントにもあるように、 +
+actorに対してメッセージを送信する(tell)には以下のように記述する。 `fire-and-forget` は軍事用語で打ちっぱなしを意味する。
+戻り型が `Unit` である。
+
+.tellの書き方
+----
+actor ! message
+(actor.tell(message, Actor.noSender) と同じ)
+----
+
+[quote]
+tellは一方向の非同期メッセージを（送信先 actorへ）送信する。
+
+ここで注意点がいくつかあるので、見ておこう。footnote:[http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#guarantees] +
+
+IMPORTANT: AkkaActorのロケーション透過性 +
+actorが同じJVM内にあるのか、遠隔地の(Remote)JVM内にあるのかで実際の処理における特性は違ってくる。
+
+IMPORTANT: Akka はメッセージが配信されることを保証しない。
+
+IMPORTANT: Akka が保証するのは、メッセージが配信されるのは最大でも 1 回であること、そしてあるアクター・インスタンスから
+別のアクター・インスタンスに送信されるメッセージは順序通りに受信されることである。
+後者の保証は、特定のアクター・ペアにだけ適用されるものであり、結合的な保証ではない。
+
+[square]
+- askはtellと同様にメッセージを送信するパターンの一つである。 +
+tellの戻り型は `Unit` であったが、 askの場合は `Future[Any]` になる。
+
+.akka.pattern.AskSupport
+[source, scala]
+----
+/**
+ * This object contains implementation details of the “ask” pattern.
+ */
+trait AskSupport {
+
+  /**
+   * Import this implicit conversion to gain `?` and `ask` methods on
+   * [[akka.actor.ActorRef]], which will defer to the
+   * `ask(actorRef, message)(timeout)` method defined here.
+   *
+   * {{{
+   * import akka.pattern.ask
+   *
+   * val future = actor ? message             // => ask(actor, message)
+   * val future = actor ask message           // => ask(actor, message)
+   * val future = actor.ask(message)(timeout) // => ask(actor, message)(timeout)
+   * }}}
+   *
+   * All of the above use an implicit [[akka.util.Timeout]].
+   */
+  implicit def ask(actorRef: ActorRef): AskableActorRef = new AskableActorRef(actorRef)
+
+  /**
+   * Sends a message asynchronously and returns a [[scala.concurrent.Future]]
+   * holding the eventual reply message; this means that the target actor
+   * needs to send the result to the `sender` reference provided. The Future
+   * will be completed with an [[akka.pattern.AskTimeoutException]] after the
+   * given timeout has expired; this is independent from any timeout applied
+   * while awaiting a result for this future (i.e. in
+   * `Await.result(..., timeout)`).
+   *
+   * <b>Warning:</b>
+   * When using future callbacks, inside actors you need to carefully avoid closing over
+   * the containing actor’s object, i.e. do not call methods or access mutable state
+   * on the enclosing actor from within the callback. This would break the actor
+   * encapsulation and may introduce synchronization bugs and race conditions because
+   * the callback will be scheduled concurrently to the enclosing actor. Unfortunately
+   * there is not yet a way to detect these illegal accesses at compile time.
+   *
+   * <b>Recommended usage:</b>
+   *
+   * {{{
+   *   val f = ask(worker, request)(timeout)
+   *   f.map { response =>
+   *     EnrichedMessage(response)
+   *   } pipeTo nextActor
+   * }}}
+   *
+   */
+  def ask(actorRef: ActorRef, message: Any)(implicit timeout: Timeout): Future[Any] = actorRef ? message
+
+  // ActorSelectionを対象とした同様のシグネチャのメソッドが定義されているが省略
+----
+
+.AskableActorRef
+[source, scala]
+----
+/*
+ * Implementation class of the “ask” pattern enrichment of ActorRef
+ */
+final class AskableActorRef(val actorRef: ActorRef) extends AnyVal {
+
+  def ask(message: Any)(implicit timeout: Timeout): Future[Any] = actorRef match {
+    case ref: InternalActorRef if ref.isTerminated ⇒
+      actorRef ! message
+      Future.failed[Any](new AskTimeoutException(s"Recipient[$actorRef] had already been terminated."))
+    case ref: InternalActorRef ⇒
+      if (timeout.duration.length <= 0)
+        Future.failed[Any](new IllegalArgumentException(s"Timeout length must not be negative, question not sent to [$actorRef]"))
+      else {
+        val a = PromiseActorRef(ref.provider, timeout, targetName = actorRef.toString)
+        actorRef.tell(message, a)
+        a.result.future
+      }
+    case _ ⇒ Future.failed[Any](new IllegalArgumentException(s"Unsupported recipient ActorRef type, question not sent to [$actorRef]"))
+  }
+
+  def ?(message: Any)(implicit timeout: Timeout): Future[Any] = ask(message)(timeout)
+}
+----
+
+`AskSupport` ソースコードの例を見ると `import akka.pattern.ask` となっており、askは `new AskableActorRef(actorRef)` である。 +
+`?` 呼び出しは 新しく `PromiseActorRef` が作成されることに注意したい。 +
+
+.askの書き方
+----
+import akka.pattern.ask
+val future = actor ? message
+(ask(actor, message) と同じ)
+----
+`akka.util.Timeout` が暗黙の引数として指定されていることに注意したい。
+
+[quote]
+askはメッセージを非同期送信するパターンであり、Future[Any]を返却する。
+
+IMPORTANT: ask を使用する手法には、いくつかの制約事項がある。 +
+特に、アクターの状態が公開されるのを避けるには (アクターの状態が公開されると、スレッド化の問題が生じる可能性がある)、
+future の処理完了時に実行されるコードでは、アクターの可変の状態を使用しないようにしなければなりません。
+実用的な観点では、アクター間で送信されるメッセージには、tell パターンを使用するほうが通常は簡単である。footnote:[http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#N10282] +
 
 '''

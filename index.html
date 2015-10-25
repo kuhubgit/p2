@@ -457,22 +457,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_akka_actor">2.2.9. Akka Actor</a></li>
 </ul>
 </li>
-<li><a href="#_collection">2.3. Collection</a>
-<ul class="sectlevel3">
-<li><a href="#_set">2.3.1. Set</a></li>
-<li><a href="#_map">2.3.2. Map</a></li>
-<li><a href="#_seq">2.3.3. Seq</a></li>
-</ul>
-</li>
-<li><a href="#_関数型デザインの構造">2.4. 関数型デザインの構造</a>
-<ul class="sectlevel3">
-<li><a href="#_モノイド_monoid">2.4.1. モノイド(Monoid)</a></li>
-<li><a href="#_モナド_monad">2.4.2. モナド(Monad)</a></li>
-<li><a href="#_アプリカティブファンクタ_applicative_fanctor">2.4.3. アプリカティブファンクタ(Applicative Fanctor)</a></li>
-<li><a href="#_トラバーサブルファンクタ_traversable_fanctor">2.4.4. トラバーサブルファンクタ(Traversable Fanctor)</a></li>
-</ul>
-</li>
-<li><a href="#_パーサーコンビネータの作り方">2.5. パーサーコンビネータの作り方</a></li>
+<li><a href="#_パーサーコンビネータ">2.3. パーサーコンビネータ</a></li>
+<li><a href="#_akka_再訪">2.4. Akka 再訪</a></li>
 </ul>
 </li>
 </ul>
@@ -3347,10 +3333,8 @@ res14: (Int, Int) = (220,260)</pre>
 <p>Scalaで非同期処理を行う際にFutureとともに利用されることの多い、Akka Actorライブラリについて以下の観点で簡単にまとめる。<br>
 1. actorとは何か<br>
 2. Java並行計算ライブラリの問題点<br>
-3. Akka Actorの構成
-4. tellとask<br>
-5. persistence<br>
-6. clustering<br></p>
+3. Akka Actorの構成<br>
+4. tellとask<br></p>
 </div>
 </div>
 </div>
@@ -3549,73 +3533,268 @@ ActorのConfigurationについては <code>akka.actor.ActorSystem.Settings</code
 <ol class="arabic">
 <li>
 <p>tellとask<br>
-理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。</p>
-<div class="ulist">
-<ul>
-<li>
-<p>tell</p>
+理論的な話はこのくらいにして、具体的にAkka Actorを使うために知るべきことにフォーカスを当てていきたい。<br></p>
 </li>
+</ol>
+</div>
+<div class="ulist square">
+<ul class="square">
 <li>
-<p>ask</p>
+<p>tellはメッセージを送信するメソッドである。<br></p>
 </li>
 </ul>
 </div>
-</li>
+<div class="listingblock">
+<div class="title">ActorRef.scala</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">abstract</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">ActorRef</span> <span style="color: #008000; font-weight: bold">extends</span> java<span style="color: #666666">.</span>lang<span style="color: #666666">.</span><span style="color: #0000FF; font-weight: bold">Comparable</span><span style="color: #666666">[</span><span style="color: #B00040">ActorRef</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">with</span> <span style="color: #0000FF; font-weight: bold">Serializable</span> <span style="color: #666666">{</span>
+
+<span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * Sends the specified message to the sender, i.e. fire-and-forget</span>
+<span style="color: #408080; font-style: italic"> * semantics, including the sender reference if possible.</span>
+<span style="color: #408080; font-style: italic"> *</span>
+<span style="color: #408080; font-style: italic"> * Pass [[akka.actor.ActorRef$.noSender]] or `null` as sender if there is nobody to reply to</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">def</span> tell<span style="color: #666666">(</span>msg<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">,</span> sender<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">this</span><span style="color: #666666">.!(</span>msg<span style="color: #666666">)(</span>sender<span style="color: #666666">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>tellの内部実装は <code>!</code> の呼び出しに変換されている。</p>
+</div>
+<div class="listingblock">
+<div class="title">ScalaActorRef</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">trait</span> <span style="color: #0000FF; font-weight: bold">ScalaActorRef</span> <span style="color: #666666">{</span> ref<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span> <span style="color: #008000; font-weight: bold">⇒</span>
+
+  <span style="color: #B00040">/**</span>
+   <span style="color: #666666">*</span> <span style="color: #0000FF; font-weight: bold">Sends</span> a one<span style="color: #666666">-</span>way asynchronous message<span style="color: #666666">.</span> E<span style="color: #666666">.</span>g<span style="color: #666666">.</span> fire<span style="color: #666666">-</span>and<span style="color: #666666">-</span>forget semantics<span style="color: #666666">.</span>
+   <span style="color: #666666">*</span> <span style="color: #666666">&lt;</span>p<span style="color: #666666">/&gt;</span>
+   <span style="color: #666666">*</span>
+   <span style="color: #666666">*</span> <span style="color: #0000FF; font-weight: bold">If</span> invoked from within an actor then the actor reference is implicitly passed on as the <span style="color: #008000; font-weight: bold">implicit</span> sender argument<span style="color: #666666">.</span>
+   <span style="color: #666666">*</span> <span style="color: #666666">&lt;</span>p<span style="color: #666666">/&gt;</span>
+   <span style="color: #666666">*</span>
+   <span style="color: #666666">*</span> <span style="color: #0000FF; font-weight: bold">This</span> actor sender reference is then available in the receiving actor in the sender<span style="color: #666666">()</span> member variable<span style="color: #666666">,</span>
+   <span style="color: #666666">*</span> <span style="color: #008000; font-weight: bold">if</span> invoked from within an <span style="color: #0000FF; font-weight: bold">Actor</span><span style="color: #666666">.</span> <span style="color: #0000FF; font-weight: bold">If</span> not then no sender is available<span style="color: #666666">.</span>
+   <span style="color: #666666">*</span> <span style="color: #666666">&lt;</span>pre<span style="color: #666666">&gt;</span>
+   <span style="color: #666666">*</span>   actor <span style="color: #666666">!</span> message
+   <span style="color: #666666">*</span> <span style="color: #666666">&lt;/</span>pre<span style="color: #666666">&gt;</span>
+   <span style="color: #666666">*</span> <span style="color: #666666">&lt;</span>p<span style="color: #666666">/&gt;</span>
+   <span style="color: #666666">*/</span>
+  <span style="color: #008000; font-weight: bold">def</span> <span style="color: #666666">!(</span>message<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> sender<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span> <span style="color: #666666">=</span> <span style="color: #0000FF; font-weight: bold">Actor</span><span style="color: #666666">.</span>noSender<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Unit</span>
+
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>!</code> ImplicitConversions(暗黙の型変換)を利用して呼び出されている。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">package</span> <span style="color: #0000FF; font-weight: bold">akka</span>
+
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">language.implicitConversions</span>
+
+<span style="color: #008000; font-weight: bold">package</span> <span style="color: #0000FF; font-weight: bold">object</span> actor <span style="color: #666666">{</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">def</span> actorRef2Scala<span style="color: #666666">(</span>ref<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ScalaActorRef</span> <span style="color: #666666">=</span> ref<span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">ScalaActorRef</span><span style="color: #666666">]</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">def</span> scala2ActorRef<span style="color: #666666">(</span>ref<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ScalaActorRef</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span> <span style="color: #666666">=</span> ref<span style="color: #666666">.</span>asInstanceOf<span style="color: #666666">[</span><span style="color: #B00040">ActorRef</span><span style="color: #666666">]</span>
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>まわりくどくなったが、ようやくtellの実体が見えてきた。 <code>ScalaActorRef</code> のソースコードのコメントにもあるように、<br>
+actorに対してメッセージを送信する(tell)には以下のように記述する。 <code>fire-and-forget</code> は軍事用語で打ちっぱなしを意味する。
+戻り型が <code>Unit</code> である。</p>
+</div>
+<div class="listingblock">
+<div class="title">tellの書き方</div>
+<div class="content">
+<pre>actor ! message
+(actor.tell(message, Actor.noSender) と同じ)</pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+tellは一方向の非同期メッセージを（送信先 actorへ）送信する。
+</blockquote>
+</div>
+<div class="paragraph">
+<p>ここで注意点がいくつかあるので、見ておこう。<span class="footnote">[<a id="_footnoteref_12" class="footnote" href="#_footnote_12" title="View footnote.">12</a>]</span><br></p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+AkkaActorのロケーション透過性<br>
+actorが同じJVM内にあるのか、遠隔地の(Remote)JVM内にあるのかで実際の処理における特性は違ってくる。
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Akka はメッセージが配信されることを保証しない。
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Akka が保証するのは、メッセージが配信されるのは最大でも 1 回であること、そしてあるアクター・インスタンスから
+別のアクター・インスタンスに送信されるメッセージは順序通りに受信されることである。
+後者の保証は、特定のアクター・ペアにだけ適用されるものであり、結合的な保証ではない。
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist square">
+<ul class="square">
 <li>
-<p>persistence<br></p>
+<p>askはtellと同様にメッセージを送信するパターンの一つである。<br>
+tellの戻り型は <code>Unit</code> であったが、 askの場合は <code>Future[Any]</code> になる。</p>
 </li>
-<li>
-<p>clustering<br></p>
-</li>
-</ol>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">akka.pattern.AskSupport</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic"> * This object contains implementation details of the “ask” pattern.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">trait</span> <span style="color: #0000FF; font-weight: bold">AskSupport</span> <span style="color: #666666">{</span>
+
+  <span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic">   * Import this implicit conversion to gain `?` and `ask` methods on</span>
+<span style="color: #408080; font-style: italic">   * [[akka.actor.ActorRef]], which will defer to the</span>
+<span style="color: #408080; font-style: italic">   * `ask(actorRef, message)(timeout)` method defined here.</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * {{{</span>
+<span style="color: #408080; font-style: italic">   * import akka.pattern.ask</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * val future = actor ? message             // =&gt; ask(actor, message)</span>
+<span style="color: #408080; font-style: italic">   * val future = actor ask message           // =&gt; ask(actor, message)</span>
+<span style="color: #408080; font-style: italic">   * val future = actor.ask(message)(timeout) // =&gt; ask(actor, message)(timeout)</span>
+<span style="color: #408080; font-style: italic">   * }}}</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * All of the above use an implicit [[akka.util.Timeout]].</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">implicit</span> <span style="color: #008000; font-weight: bold">def</span> ask<span style="color: #666666">(</span>actorRef<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">AskableActorRef</span> <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">AskableActorRef</span><span style="color: #666666">(</span>actorRef<span style="color: #666666">)</span>
+
+  <span style="color: #408080; font-style: italic">/**</span>
+<span style="color: #408080; font-style: italic">   * Sends a message asynchronously and returns a [[scala.concurrent.Future]]</span>
+<span style="color: #408080; font-style: italic">   * holding the eventual reply message; this means that the target actor</span>
+<span style="color: #408080; font-style: italic">   * needs to send the result to the `sender` reference provided. The Future</span>
+<span style="color: #408080; font-style: italic">   * will be completed with an [[akka.pattern.AskTimeoutException]] after the</span>
+<span style="color: #408080; font-style: italic">   * given timeout has expired; this is independent from any timeout applied</span>
+<span style="color: #408080; font-style: italic">   * while awaiting a result for this future (i.e. in</span>
+<span style="color: #408080; font-style: italic">   * `Await.result(..., timeout)`).</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * &lt;b&gt;Warning:&lt;/b&gt;</span>
+<span style="color: #408080; font-style: italic">   * When using future callbacks, inside actors you need to carefully avoid closing over</span>
+<span style="color: #408080; font-style: italic">   * the containing actor’s object, i.e. do not call methods or access mutable state</span>
+<span style="color: #408080; font-style: italic">   * on the enclosing actor from within the callback. This would break the actor</span>
+<span style="color: #408080; font-style: italic">   * encapsulation and may introduce synchronization bugs and race conditions because</span>
+<span style="color: #408080; font-style: italic">   * the callback will be scheduled concurrently to the enclosing actor. Unfortunately</span>
+<span style="color: #408080; font-style: italic">   * there is not yet a way to detect these illegal accesses at compile time.</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * &lt;b&gt;Recommended usage:&lt;/b&gt;</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   * {{{</span>
+<span style="color: #408080; font-style: italic">   *   val f = ask(worker, request)(timeout)</span>
+<span style="color: #408080; font-style: italic">   *   f.map { response =&gt;</span>
+<span style="color: #408080; font-style: italic">   *     EnrichedMessage(response)</span>
+<span style="color: #408080; font-style: italic">   *   } pipeTo nextActor</span>
+<span style="color: #408080; font-style: italic">   * }}}</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> ask<span style="color: #666666">(</span>actorRef<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span><span style="color: #666666">,</span> message<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> timeout<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Timeout</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> actorRef <span style="color: #666666">?</span> message
+
+  <span style="color: #408080; font-style: italic">// ActorSelectionを対象とした同様のシグネチャのメソッドが定義されているが省略</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">AskableActorRef</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/*</span>
+<span style="color: #408080; font-style: italic"> * Implementation class of the “ask” pattern enrichment of ActorRef</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">final</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">AskableActorRef</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">val</span> actorRef<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">ActorRef</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">AnyVal</span> <span style="color: #666666">{</span>
+
+  <span style="color: #008000; font-weight: bold">def</span> ask<span style="color: #666666">(</span>message<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> timeout<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Timeout</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> actorRef <span style="color: #008000; font-weight: bold">match</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> ref<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">InternalActorRef</span> <span style="color: #B00040">if</span> <span style="color: #B00040">ref.isTerminated</span> <span style="color: #008000; font-weight: bold">⇒</span>
+      <span style="color: #B00040">actorRef</span> <span style="color: #B00040">!</span> <span style="color: #B00040">message</span>
+      <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">.</span>failed<span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">AskTimeoutException</span><span style="color: #666666">(</span>s<span style="color: #BA2121">&quot;Recipient[$actorRef] had already been terminated.&quot;</span><span style="color: #666666">))</span>
+    <span style="color: #008000; font-weight: bold">case</span> ref<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">InternalActorRef</span> <span style="color: #008000; font-weight: bold">⇒</span>
+      <span style="color: #B00040">if</span> <span style="color: #666666">(</span><span style="color: #B00040">timeout.duration.length</span> <span style="color: #B00040">&lt;=</span> <span style="border: 1px solid #FF0000">0</span><span style="color: #666666">)</span>
+        <span style="color: #B00040">Future.failed</span><span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">IllegalArgumentException</span><span style="color: #666666">(</span>s<span style="color: #BA2121">&quot;Timeout length must not be negative, question not sent to [$actorRef]&quot;</span><span style="color: #666666">))</span>
+      <span style="color: #008000; font-weight: bold">else</span> <span style="color: #666666">{</span>
+        <span style="color: #008000; font-weight: bold">val</span> a <span style="color: #008000; font-weight: bold">=</span> <span style="color: #0000FF; font-weight: bold">PromiseActorRef</span><span style="color: #666666">(</span>ref<span style="color: #666666">.</span>provider<span style="color: #666666">,</span> timeout<span style="color: #666666">,</span> targetName <span style="color: #008000; font-weight: bold">=</span> actorRef<span style="color: #666666">.</span>toString<span style="color: #666666">)</span>
+        actorRef<span style="color: #666666">.</span>tell<span style="color: #666666">(</span>message<span style="color: #666666">,</span> a<span style="color: #666666">)</span>
+        a<span style="color: #666666">.</span>result<span style="color: #666666">.</span>future
+      <span style="color: #666666">}</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #008000; font-weight: bold">_</span> <span style="color: #008000; font-weight: bold">⇒</span> <span style="color: #0000FF; font-weight: bold">Future</span><span style="color: #666666">.</span>failed<span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">](</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF; font-weight: bold">IllegalArgumentException</span><span style="color: #666666">(</span>s<span style="color: #BA2121">&quot;Unsupported recipient ActorRef type, question not sent to [$actorRef]&quot;</span><span style="color: #666666">))</span>
+  <span style="color: #666666">}</span>
+
+  <span style="color: #008000; font-weight: bold">def</span> <span style="color: #666666">?(</span>message<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Any</span><span style="color: #666666">)(</span><span style="color: #008000; font-weight: bold">implicit</span> timeout<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Timeout</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Future</span><span style="color: #666666">[</span><span style="color: #B00040">Any</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=</span> ask<span style="color: #666666">(</span>message<span style="color: #666666">)(</span>timeout<span style="color: #666666">)</span>
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>AskSupport</code> ソースコードの例を見ると <code>import akka.pattern.ask</code> となっており、askは <code>new AskableActorRef(actorRef)</code> である。<br>
+<code>?</code> 呼び出しは 新しく <code>PromiseActorRef</code> が作成されることに注意したい。<br></p>
+</div>
+<div class="listingblock">
+<div class="title">askの書き方</div>
+<div class="content">
+<pre>import akka.pattern.ask
+val future = actor ? message
+(ask(actor, message) と同じ)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>akka.util.Timeout</code> が暗黙の引数として指定されていることに注意したい。</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+askはメッセージを非同期送信するパターンであり、Future[Any]を返却する。
+</blockquote>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+ask を使用する手法には、いくつかの制約事項がある。<br>
+特に、アクターの状態が公開されるのを避けるには (アクターの状態が公開されると、スレッド化の問題が生じる可能性がある)、
+future の処理完了時に実行されるコードでは、アクターの可変の状態を使用しないようにしなければなりません。
+実用的な観点では、アクター間で送信されるメッセージには、tell パターンを使用するほうが通常は簡単である。<span class="footnote">[<a id="_footnoteref_13" class="footnote" href="#_footnote_13" title="View footnote.">13</a>]</span><br>
+</td>
+</tr>
+</table>
 </div>
 <hr>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_collection">2.3. Collection</h3>
-<div class="sidebarblock">
-<div class="content">
-<div class="paragraph">
-<p>Scalaでの基本コレクション型である、Set,Map,Seqについて説明を行い、簡単な使用例を紹介する。
-また、応用例として便利な関数を作成する。</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_set">2.3.1. Set</h4>
+<h3 id="_パーサーコンビネータ">2.3. パーサーコンビネータ</h3>
 
-</div>
-<div class="sect3">
-<h4 id="_map">2.3.2. Map</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_seq">2.3.3. Seq</h4>
-
-</div>
 </div>
 <div class="sect2">
-<h3 id="_関数型デザインの構造">2.4. 関数型デザインの構造</h3>
-<div class="sect3">
-<h4 id="_モノイド_monoid">2.4.1. モノイド(Monoid)</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_モナド_monad">2.4.2. モナド(Monad)</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_アプリカティブファンクタ_applicative_fanctor">2.4.3. アプリカティブファンクタ(Applicative Fanctor)</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_トラバーサブルファンクタ_traversable_fanctor">2.4.4. トラバーサブルファンクタ(Traversable Fanctor)</h4>
-
-</div>
-</div>
-<div class="sect2">
-<h3 id="_パーサーコンビネータの作り方">2.5. パーサーコンビネータの作り方</h3>
+<h3 id="_akka_再訪">2.4. Akka 再訪</h3>
 
 </div>
 </div>
@@ -3656,11 +3835,17 @@ ActorのConfigurationについては <code>akka.actor.ActorSystem.Settings</code
 <div class="footnote" id="_footnote_11">
 <a href="#_footnoteref_11">11</a>. <a href="http://doc.akka.io/docs/akka/2.4.0/general/configuration.html" class="bare">http://doc.akka.io/docs/akka/2.4.0/general/configuration.html</a>
 </div>
+<div class="footnote" id="_footnote_12">
+<a href="#_footnoteref_12">12</a>. <a href="http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#guarantees" class="bare">http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#guarantees</a>
+</div>
+<div class="footnote" id="_footnote_13">
+<a href="#_footnoteref_13">13</a>. <a href="http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#N10282" class="bare">http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#N10282</a>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-10-17 23:53:06 JST
+Last updated 2015-10-25 16:49:42 JST
 </div>
 </div>
 </body>

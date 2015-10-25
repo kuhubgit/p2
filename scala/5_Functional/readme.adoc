@@ -4,6 +4,6 @@
 
 === モナド(Monad)
 
-=== アプリカティブファンクタ(Applicative Fanctor)
+=== アプリカティブファンクタ(Applicative Functor)
 
-=== トラバーサブルファンクタ(Traversable Fanctor)
+=== トラバーサブルファンクタ(Traversable Functor)
