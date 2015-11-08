@@ -1,9 +1,147 @@
 == 関数型デザインの構造
 
-=== モノイド(Monoid)
+****
+関数型言語での常套手段であるカリー化の手法や部分適用の構造や
+モノイド、モナドなどの圏論(category theory)の概念にもすこしふれる。
+****
 
-=== モナド(Monad)
+=== カリー化(currying)
 
-=== アプリカティブファンクタ(Applicative Functor)
+コップ本では9章 制御構造の抽象化の9.3カリー化として記載されている。
 
-=== トラバーサブルファンクタ(Traversable Functor)
+* 複数の引数を取る関数を、1 つの引数のみを取る関数のチェーンに変換する処理を表す用語である。
+* 変換された関数を呼び出すことを表しているのではなく、変換プロセスそのものを表している。
+* この関数に適用する引数の個数は、呼び出す側が決めることができ、それによって少ない数の引数を取る関数を派生させることができる。 +
+footnote:[http://www.ibm.com/developerworks/jp/java/library/j-jn9/]
+
+カリー化されていない状態の関数max
+
+----
+scala> val max = (x: Int, y: Int) => if(x < y) y else x
+max: (Int, Int) => Int = <function2>
+----
+* `<function2>` = scala.Function2トレイトのtoStringである。
+
+カリー化した状態の関数max
+
+----
+scala> val max = (x: Int) => (y: Int) => if (x < y) y else x
+max: Int => (Int => Int) = <function1>
+----
+* `<function1>` = scala.Function1トレイトのtoStringである。
+
+カリー化は、関数maxをFunction2からFunction1へ変換させている。
+`(Int, Int) => Int` と　`Int => (Int => Int)` をよく見てみるとFunction2からFunction1への変化でおこったことは以下のとおり。
+
+- 括弧()の位置が右にずれた。
+- カンマ(,)が消えて、矢印(=>)が増えた。
+
+さらに引数を増やして検証してみる。
+
+----
+scala> val adder = (x: Int, y: Int, z: Int) => x+y+z
+adder: (Int, Int, Int) => Int = <function3>
+
+scala> val curriedAdder = (x: Int) => (y: Int) => (z: Int) => x+y+z
+curriedAdder: Int => (Int => (Int => Int)) = <function1>
+----
+Function3からFunction1への変換（カリー化）は
+
+- 括弧()の位置が右にずれた。
+- 括弧()が増えた。
+- カンマ(,)が消えて、矢印(=>)が増えた。
+
+この2つの例で共通しているのはともに左端が `Int => ` で始まっている。
+
+TIP: さらに引数を増やしたカリー化をREPLで確かめてみてください。
+
+ところでこのカリー化することのメリットとはなんでしょうか？
+
+Function.scalaにはuncurriedというメソッドが定義されている。
+
+.Function#uncurried
+[source, scala]
+/** Uncurrying for functions of arity 2. This transforms a unary function
+ *  returning another unary function into a function of arity 2.
+ */
+def uncurried[a1, a2, b](f: a1 => a2 => b): (a1, a2) => b = {
+  (x1, x2) => f(x1)(x2)
+}
+
+先ほどのmax関数を `uncurried` してみる。
+----
+scala> val uncurriedMax = Function.uncurried(max)
+uncurriedMax: (Int, Int) => Int = <function2>
+----
+ソースコメントにある `functions of arity 2` は2つの引数をとる関数という意味である。 +
+このほかに　arity3 ~ arity5 までの `uncurried` が定義されている。
+
+先ほどみたFunction.scalaは `object` であるが、 `trait` としてFunction0 ~ Function22まで
+Functionが定義されている。
+
+.Function2.scala
+[source, scala]
+trait Function2[@specialized(scala.Int, scala.Long, scala.Double) -T1, @specialized(scala.Int, scala.Long, scala.Double) -T2, @specialized(scala.Unit, scala.Boolean, scala.Int, scala.Float, scala.Long, scala.Double) +R] extends AnyRef { self =>
+  /** Apply the body of this function to the arguments.
+   *  @return   the result of function application.
+   */
+  def apply(v1: T1, v2: T2): R
+  /** Creates a curried version of this function.
+   *
+   *  @return   a function `f` such that `f(x1)(x2) == apply(x1, x2)`
+   */
+  @annotation.unspecialized def curried: T1 => T2 => R = {
+    (x1: T1) => (x2: T2) => apply(x1, x2)
+  }
+  /** Creates a tupled version of this function: instead of 2 arguments,
+   *  it accepts a single [[scala.Tuple2]] argument.
+   *
+   *  @return   a function `f` such that `f((x1, x2)) == f(Tuple2(x1, x2)) == apply(x1, x2)`
+   */
+  @annotation.unspecialized def tupled: Tuple2[T1, T2] => R = {
+    case Tuple2(x1, x2) => apply(x1, x2)
+  }
+  override def toString() = "<function2>"
+}
+
+`curried` というカリー化を行うメソッドが定義されている。（Function2 ~ Function22には `curried` が用意されている。）
+先ほどのadder関数を `curried` してみる。
+----
+scala> val curriedAdder2 = adder.curried
+curriedAdder2: Int => (Int => (Int => Int)) = <function1>
+----
+
+簡単なカリー化の例とScalaの関数には curriedおよびuncurriedのメソッドが定義されていることを見てきた。 +
+カリー化は部分適用を行うために実施されることが多い。また、部分適用を行いやすくするために予めカリー化しておくことがある。
+
+=== 部分適用
+
+コップ本では8章関数とクロージャの8.6部分適用された関数として記載がされている。
+
+* 複数の引数を取る関数を、それより少ない数の引数を取る関数に変換し、除外された引数には最初から値を指定しておく、という処理を表す用語です。
+* その名前にふさわしく、この手法は関数に対して複数の引数を部分的に適用し、残りの引数で構成されるシグニチャーを持つ別の関数を返します。
+footnote:[http://www.ibm.com/developerworks/jp/java/library/j-jn9/]
+
+部分適用した関数adder
+
+----
+scala> val partAdder = adder(_: Int, _: Int, 3)
+partAdder: (Int, Int) => Int = <function2>
+----
+（zパラメータを）部分適用した関数partAdderは `Int` を2つ引数にとり `Int` を返却する `Function2` が生成されている。
+
+引数を一つ与えたカリー化関数adder
+
+----
+scala> val curriedAdder3 = curriedAdder(3)
+curriedAdder3: Int => (Int => Int) = <function1>
+----
+部分適用との違いはなんでしょうか？
+
+部分適用した場合、部分適用されたアリティー(arity)の数だけ小さくなった関数が返却されているが、
+カリー化の場合は関数チェーンの次の関数 `Int => (Int => Int)` が返却されているという違いに気付く。
+
+部分適用とカリー化は全く異なる概念だが、部分適用しやすいように関数をカリー化しておくことは、関数型言語でコーディングする上での常套手段なのである。
+Scalaのimplicitパラメータは主にカリー化、部分適用されたメソッドに隠れていることが多い。
+
+'''

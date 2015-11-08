@@ -45,10 +45,9 @@ for  { i <- 1 until n
        j <- 1 until i
        if isPrime(i+j) (←if guard)
 } yield (i, j)
-----
-The for comprehension is translated to:
-[source, scala]
-----
+
+// The for comprehension is translated to:
+
 (1 until n)
   .flatMap {
      case i => (1 until i)

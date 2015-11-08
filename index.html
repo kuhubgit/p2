@@ -457,8 +457,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_akka_actor">2.2.9. Akka Actor</a></li>
 </ul>
 </li>
-<li><a href="#_パーサーコンビネータ">2.3. パーサーコンビネータ</a></li>
-<li><a href="#_akka_再訪">2.4. Akka 再訪</a></li>
+<li><a href="#_関数型デザインの構造">2.3. 関数型デザインの構造</a>
+<ul class="sectlevel3">
+<li><a href="#_カリー化_currying">2.3.1. カリー化(currying)</a></li>
+<li><a href="#_部分適用">2.3.2. 部分適用</a></li>
+</ul>
+</li>
+<li><a href="#_パーサーコンビネータ">2.4. パーサーコンビネータ</a></li>
+<li><a href="#_akka_再訪">2.5. Akka 再訪</a></li>
 </ul>
 </li>
 </ul>
@@ -3080,15 +3086,11 @@ A generator p &#8592; e followed by a value definition p′ = e′ is translated
 <pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">for</span>  <span style="color: #666666">{</span> i <span style="color: #008000; font-weight: bold">&lt;-</span> <span style="color: #666666">1</span> until n
        j <span style="color: #008000; font-weight: bold">&lt;-</span> <span style="color: #666666">1</span> until i
        <span style="color: #008000; font-weight: bold">if</span> isPrime<span style="color: #666666">(</span>i<span style="color: #666666">+</span>j<span style="color: #666666">)</span> <span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">←if</span> guard<span style="color: #666666">)</span>
-<span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">yield</span> <span style="color: #666666">(</span>i<span style="color: #666666">,</span> j<span style="color: #666666">)</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The for comprehension is translated to:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="pygments highlight"><code data-lang="scala"><span style="color: #666666">(1</span> until n<span style="color: #666666">)</span>
+<span style="color: #666666">}</span> <span style="color: #008000; font-weight: bold">yield</span> <span style="color: #666666">(</span>i<span style="color: #666666">,</span> j<span style="color: #666666">)</span>
+
+<span style="color: #408080; font-style: italic">// The for comprehension is translated to:</span>
+
+<span style="color: #666666">(1</span> until n<span style="color: #666666">)</span>
   <span style="color: #666666">.</span>flatMap <span style="color: #666666">{</span>
      <span style="color: #008000; font-weight: bold">case</span> i <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(1</span> until i<span style="color: #666666">)</span>
        <span style="color: #666666">.</span>withFilter <span style="color: #666666">{</span> j <span style="color: #008000; font-weight: bold">=&gt;</span> isPrime<span style="color: #666666">(</span>i<span style="color: #666666">+</span>j<span style="color: #666666">)</span> <span style="color: #666666">}</span>
@@ -3790,11 +3792,256 @@ future の処理完了時に実行されるコードでは、アクターの可�
 </div>
 </div>
 <div class="sect2">
-<h3 id="_パーサーコンビネータ">2.3. パーサーコンビネータ</h3>
+<h3 id="_関数型デザインの構造">2.3. 関数型デザインの構造</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>関数型言語での常套手段であるカリー化の手法や部分適用の構造や
+モノイド、モナドなどの圏論(category theory)の概念にもすこしふれる。</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_カリー化_currying">2.3.1. カリー化(currying)</h4>
+<div class="paragraph">
+<p>コップ本では9章 制御構造の抽象化の9.3カリー化として記載されている。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>複数の引数を取る関数を、1 つの引数のみを取る関数のチェーンに変換する処理を表す用語である。</p>
+</li>
+<li>
+<p>変換された関数を呼び出すことを表しているのではなく、変換プロセスそのものを表している。</p>
+</li>
+<li>
+<p>この関数に適用する引数の個数は、呼び出す側が決めることができ、それによって少ない数の引数を取る関数を派生させることができる。<br>
+<span class="footnote">[<a id="_footnoteref_14" class="footnote" href="#_footnote_14" title="View footnote.">14</a>]</span></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>カリー化されていない状態の関数max</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val max = (x: Int, y: Int) =&gt; if(x &lt; y) y else x
+max: (Int, Int) =&gt; Int = &lt;function2&gt;</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;function2&gt;</code> = scala.Function2トレイトのtoStringである。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>カリー化した状態の関数max</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val max = (x: Int) =&gt; (y: Int) =&gt; if (x &lt; y) y else x
+max: Int =&gt; (Int =&gt; Int) = &lt;function1&gt;</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;function1&gt;</code> = scala.Function1トレイトのtoStringである。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>カリー化は、関数maxをFunction2からFunction1へ変換させている。
+<code>(Int, Int) &#8658; Int</code> と　<code>Int &#8658; (Int &#8658; Int)</code> をよく見てみるとFunction2からFunction1への変化でおこったことは以下のとおり。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>括弧()の位置が右にずれた。</p>
+</li>
+<li>
+<p>カンマ(,)が消えて、矢印(&#8658;)が増えた。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>さらに引数を増やして検証してみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val adder = (x: Int, y: Int, z: Int) =&gt; x+y+z
+adder: (Int, Int, Int) =&gt; Int = &lt;function3&gt;
+
+scala&gt; val curriedAdder = (x: Int) =&gt; (y: Int) =&gt; (z: Int) =&gt; x+y+z
+curriedAdder: Int =&gt; (Int =&gt; (Int =&gt; Int)) = &lt;function1&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Function3からFunction1への変換（カリー化）は</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>括弧()の位置が右にずれた。</p>
+</li>
+<li>
+<p>括弧()が増えた。</p>
+</li>
+<li>
+<p>カンマ(,)が消えて、矢印(&#8658;)が増えた。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>この2つの例で共通しているのはともに左端が `Int &#8658; ` で始まっている。</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+さらに引数を増やしたカリー化をREPLで確かめてみてください。
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>ところでこのカリー化することのメリットとはなんでしょうか？</p>
+</div>
+<div class="paragraph">
+<p>Function.scalaにはuncurriedというメソッドが定義されている。</p>
+</div>
+<div class="listingblock">
+<div class="title">Function#uncurried</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #408080; font-style: italic">/** Uncurrying for functions of arity 2. This transforms a unary function</span>
+<span style="color: #408080; font-style: italic"> *  returning another unary function into a function of arity 2.</span>
+<span style="color: #408080; font-style: italic"> */</span>
+<span style="color: #008000; font-weight: bold">def</span> uncurried<span style="color: #666666">[</span><span style="color: #B00040">a1</span>, <span style="color: #B00040">a2</span>, <span style="color: #B00040">b</span><span style="color: #666666">](</span>f<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">a1</span> <span style="color: #666666">=&gt;</span> a2 <span style="color: #008000; font-weight: bold">=&gt;</span> b<span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #666666">(</span><span style="color: #B00040">a1</span><span style="color: #666666">,</span> <span style="color: #B00040">a2</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> b <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+  <span style="color: #666666">(</span>x1<span style="color: #666666">,</span> x2<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> f<span style="color: #666666">(</span>x1<span style="color: #666666">)(</span>x2<span style="color: #666666">)</span>
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>先ほどのmax関数を <code>uncurried</code> してみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val uncurriedMax = Function.uncurried(max)
+uncurriedMax: (Int, Int) =&gt; Int = &lt;function2&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ソースコメントにある <code>functions of arity 2</code> は2つの引数をとる関数という意味である。<br>
+このほかに　arity3 ~ arity5 までの <code>uncurried</code> が定義されている。</p>
+</div>
+<div class="paragraph">
+<p>先ほどみたFunction.scalaは <code>object</code> であるが、 <code>trait</code> としてFunction0 ~ Function22まで
+Functionが定義されている。</p>
+</div>
+<div class="listingblock">
+<div class="title">Function2.scala</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="scala"><span style="color: #008000; font-weight: bold">trait</span> <span style="color: #0000FF; font-weight: bold">Function2</span><span style="color: #666666">[</span><span style="color: #B00040">@specialized</span><span style="color: #666666">(</span><span style="color: #B00040">scala.Int</span>, <span style="color: #B00040">scala.Long</span>, <span style="color: #B00040">scala.Double</span><span style="color: #666666">)</span> <span style="color: #B00040">-T1</span>, <span style="color: #B00040">@specialized</span><span style="color: #666666">(</span><span style="color: #B00040">scala.Int</span>, <span style="color: #B00040">scala.Long</span>, <span style="color: #B00040">scala.Double</span><span style="color: #666666">)</span> <span style="color: #B00040">-T2</span>, <span style="color: #B00040">@specialized</span><span style="color: #666666">(</span><span style="color: #B00040">scala.Unit</span>, <span style="color: #B00040">scala.Boolean</span>, <span style="color: #B00040">scala.Int</span>, <span style="color: #B00040">scala.Float</span>, <span style="color: #B00040">scala.Long</span>, <span style="color: #B00040">scala.Double</span><span style="color: #666666">)</span> <span style="color: #B00040">+R</span><span style="color: #666666">]</span> <span style="color: #0000FF; font-weight: bold">extends</span> <span style="color: #0000FF; font-weight: bold">AnyRef</span> <span style="color: #666666">{</span> self <span style="color: #008000; font-weight: bold">=&gt;</span>
+  <span style="color: #408080; font-style: italic">/** Apply the body of this function to the arguments.</span>
+<span style="color: #408080; font-style: italic">   *  @return   the result of function application.</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #008000; font-weight: bold">def</span> apply<span style="color: #666666">(</span>v1<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T1</span><span style="color: #666666">,</span> v2<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T2</span><span style="color: #666666">)</span><span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">R</span>
+  <span style="color: #408080; font-style: italic">/** Creates a curried version of this function.</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   *  @return   a function `f` such that `f(x1)(x2) == apply(x1, x2)`</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #AA22FF">@annotation</span><span style="color: #666666">.</span>unspecialized <span style="color: #008000; font-weight: bold">def</span> curried<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T1</span> <span style="color: #666666">=&gt;</span> T2 <span style="color: #008000; font-weight: bold">=&gt;</span> R <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+    <span style="color: #666666">(</span>x1<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T1</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> <span style="color: #666666">(</span>x2<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">T2</span><span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> apply<span style="color: #666666">(</span>x1<span style="color: #666666">,</span> x2<span style="color: #666666">)</span>
+  <span style="color: #666666">}</span>
+  <span style="color: #408080; font-style: italic">/** Creates a tupled version of this function: instead of 2 arguments,</span>
+<span style="color: #408080; font-style: italic">   *  it accepts a single [[scala.Tuple2]] argument.</span>
+<span style="color: #408080; font-style: italic">   *</span>
+<span style="color: #408080; font-style: italic">   *  @return   a function `f` such that `f((x1, x2)) == f(Tuple2(x1, x2)) == apply(x1, x2)`</span>
+<span style="color: #408080; font-style: italic">   */</span>
+  <span style="color: #AA22FF">@annotation</span><span style="color: #666666">.</span>unspecialized <span style="color: #008000; font-weight: bold">def</span> tupled<span style="color: #008000; font-weight: bold">:</span> <span style="color: #B00040">Tuple2</span><span style="color: #666666">[</span><span style="color: #B00040">T1</span>, <span style="color: #B00040">T2</span><span style="color: #666666">]</span> <span style="color: #008000; font-weight: bold">=&gt;</span> R <span style="color: #008000; font-weight: bold">=</span> <span style="color: #666666">{</span>
+    <span style="color: #008000; font-weight: bold">case</span> <span style="color: #0000FF; font-weight: bold">Tuple2</span><span style="color: #666666">(</span>x1<span style="color: #666666">,</span> x2<span style="color: #666666">)</span> <span style="color: #008000; font-weight: bold">=&gt;</span> apply<span style="color: #666666">(</span>x1<span style="color: #666666">,</span> x2<span style="color: #666666">)</span>
+  <span style="color: #666666">}</span>
+  <span style="color: #008000; font-weight: bold">override</span> <span style="color: #008000; font-weight: bold">def</span> toString<span style="color: #666666">()</span> <span style="color: #008000; font-weight: bold">=</span> <span style="color: #BA2121">&quot;&lt;function2&gt;&quot;</span>
+<span style="color: #666666">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>curried</code> というカリー化を行うメソッドが定義されている。（Function2 ~ Function22には <code>curried</code> が用意されている。）
+先ほどのadder関数を <code>curried</code> してみる。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val curriedAdder2 = adder.curried
+curriedAdder2: Int =&gt; (Int =&gt; (Int =&gt; Int)) = &lt;function1&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>簡単なカリー化の例とScalaの関数には curriedおよびuncurriedのメソッドが定義されていることを見てきた。<br>
+カリー化は部分適用を行うために実施されることが多い。また、部分適用を行いやすくするために予めカリー化しておくことがある。</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_部分適用">2.3.2. 部分適用</h4>
+<div class="paragraph">
+<p>コップ本では8章関数とクロージャの8.6部分適用された関数として記載がされている。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>複数の引数を取る関数を、それより少ない数の引数を取る関数に変換し、除外された引数には最初から値を指定しておく、という処理を表す用語です。</p>
+</li>
+<li>
+<p>その名前にふさわしく、この手法は関数に対して複数の引数を部分的に適用し、残りの引数で構成されるシグニチャーを持つ別の関数を返します。
+<span class="footnote">[<a id="_footnoteref_15" class="footnote" href="#_footnote_15" title="View footnote.">15</a>]</span></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>部分適用した関数adder</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val partAdder = adder(_: Int, _: Int, 3)
+partAdder: (Int, Int) =&gt; Int = &lt;function2&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>（zパラメータを）部分適用した関数partAdderは <code>Int</code> を2つ引数にとり <code>Int</code> を返却する <code>Function2</code> が生成されている。</p>
+</div>
+<div class="paragraph">
+<p>引数を一つ与えたカリー化関数adder</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>scala&gt; val curriedAdder3 = curriedAdder(3)
+curriedAdder3: Int =&gt; (Int =&gt; Int) = &lt;function1&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>部分適用との違いはなんでしょうか？</p>
+</div>
+<div class="paragraph">
+<p>部分適用した場合、部分適用されたアリティー(arity)の数だけ小さくなった関数が返却されているが、
+カリー化の場合は関数チェーンの次の関数 <code>Int &#8658; (Int &#8658; Int)</code> が返却されているという違いに気付く。</p>
+</div>
+<div class="paragraph">
+<p>部分適用とカリー化は全く異なる概念だが、部分適用しやすいように関数をカリー化しておくことは、関数型言語でコーディングする上での常套手段なのである。
+Scalaのimplicitパラメータは主にカリー化、部分適用されたメソッドに隠れていることが多い。</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_パーサーコンビネータ">2.4. パーサーコンビネータ</h3>
 
 </div>
 <div class="sect2">
-<h3 id="_akka_再訪">2.4. Akka 再訪</h3>
+<h3 id="_akka_再訪">2.5. Akka 再訪</h3>
 
 </div>
 </div>
@@ -3841,11 +4088,17 @@ future の処理完了時に実行されるコードでは、アクターの可�
 <div class="footnote" id="_footnote_13">
 <a href="#_footnoteref_13">13</a>. <a href="http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#N10282" class="bare">http://www.ibm.com/developerworks/jp/java/library/j-jvmc5/index.html#N10282</a>
 </div>
+<div class="footnote" id="_footnote_14">
+<a href="#_footnoteref_14">14</a>. <a href="http://www.ibm.com/developerworks/jp/java/library/j-jn9/" class="bare">http://www.ibm.com/developerworks/jp/java/library/j-jn9/</a>
+</div>
+<div class="footnote" id="_footnote_15">
+<a href="#_footnoteref_15">15</a>. <a href="http://www.ibm.com/developerworks/jp/java/library/j-jn9/" class="bare">http://www.ibm.com/developerworks/jp/java/library/j-jn9/</a>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2015-10-25 16:49:42 JST
+Last updated 2015-11-08 10:01:50 JST
 </div>
 </div>
 </body>
